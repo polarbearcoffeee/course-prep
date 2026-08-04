@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
 <title>課務事前準備系統</title>
 
 <!-- ===================================================================
@@ -35,62 +36,127 @@ try {
 
 <style>
 :root{
-  --brand:#8b5cf6; --brand-d:#6d28d9; --brand-bg:#f5f3ff;
-  --ink:#332d41; --line:#e9e3f7;
-  --ok:#16a34a; --red:#dc2626; --card:#ffffff;
-  --muted:#7c7291;
+  --brand:#8b5cf6; --brand-d:#6d28d9; --brand-strong:#4a3d57; --page-bg:#f5f3ff;
+  --ink:#332d41; --line:#e3dcf2; --hair:rgba(51,45,65,.10);
+  --ok:#16a34a; --ok-bg:#eafaf0;
+  --red:#dc2626; --red-bg:#fdecec;
+  --card:#ffffff; --card-highlight:rgba(255,255,255,.7);
+  --muted:#5b5470;
+  --gold:#c9a15a;
+  --ring:rgba(139,92,246,.38);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --brand:#ad93f7; --brand-d:#c9b8fb; --brand-strong:#2b2438; --page-bg:#18141f;
+    --ink:#ece7f5; --line:#3a3148; --hair:rgba(236,231,245,.12);
+    --ok:#4ade80; --ok-bg:rgba(74,222,128,.12);
+    --red:#f78787; --red-bg:rgba(247,135,135,.12);
+    --card:#241f30; --card-highlight:rgba(255,255,255,.045);
+    --muted:#ab9fc9;
+    --gold:#d9bd82;
+    --ring:rgba(173,147,247,.5);
+  }
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
-body{ font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; background:var(--brand-bg); color:var(--ink); padding-bottom:40px; }
-header{ background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; padding:18px 16px 12px; text-align:center; position:relative; }
-header h1{ font-size:19px; letter-spacing:1px; }
-header .sub{ font-size:12px; opacity:.9; margin-top:4px; }
-header .gear{ position:absolute; right:14px; top:16px; background:rgba(255,255,255,.2); border:none; color:#fff; width:36px; height:36px; border-radius:10px; font-size:17px; cursor:pointer; }
+body{ font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; background:var(--page-bg); color:var(--ink); padding-bottom:60px; }
+h1,h3.sec,.cal-head b,.sheet-head b,.pin-box b{ font-family:"Songti TC","Noto Serif TC","PMingLiU",serif; }
+header{ background:var(--brand-strong); color:#fff; padding:18px 16px 14px; text-align:center; position:relative; border-bottom:3px solid var(--gold); }
+header h1{ font-size:19px; letter-spacing:1px; font-weight:700; }
+header .sub{ font-size:12px; opacity:.85; margin-top:4px; }
+.brand-badge{ display:inline-flex; vertical-align:-6px; margin-right:2px; opacity:.95; }
+header .gear{ position:absolute; right:14px; top:14px; background:rgba(255,255,255,.16); border:none; color:#fff; width:38px; height:38px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
+header .gear:hover{ background:rgba(255,255,255,.28); }
+header .gear:active{ transform:scale(.94); }
+header .gear:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(255,255,255,.55); }
 main{ max-width:640px; margin:0 auto; padding:14px 12px; }
-.err-banner{ background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:12px; }
-.card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; box-shadow:0 1px 3px rgba(109,40,217,.06), 0 8px 18px -10px rgba(109,40,217,.16); }
-h3.sec{ color:var(--brand-d); font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.err-banner{ background:var(--red-bg); border:1px solid var(--red); color:var(--red); border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px;
+  box-shadow:inset 0 1px 0 var(--card-highlight), 0 1px 3px rgba(109,40,217,.06), 0 8px 18px -10px rgba(109,40,217,.16);
+  transition:border-color .18s ease, box-shadow .18s ease; }
+.card.todo-active{ border-color:var(--brand); box-shadow:inset 0 1px 0 var(--card-highlight), 0 2px 6px rgba(139,92,246,.14), 0 16px 30px -16px rgba(139,92,246,.32); }
+h3.sec{ color:var(--brand-d); font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:6px; font-weight:700; }
 .muted{ color:var(--muted); font-size:12px; }
-.empty{ text-align:center; color:#b3a8d6; padding:24px 0; font-size:14px; }
-.btn{ border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:800; cursor:pointer; }
+.empty{ text-align:center; color:var(--muted); padding:24px 0; font-size:14px; }
+.ic{ display:block; }
+.btn{ border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:800; cursor:pointer;
+  transition:background-color .16s ease, color .16s ease, border-color .16s ease, transform .12s ease, opacity .16s ease;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; }
 .btn-main{ background:var(--brand); color:#fff; }
-.btn-ghost{ background:#fff; border:1.5px solid var(--brand); color:var(--brand-d); }
+.btn-main:hover{ background:var(--brand-d); }
+.btn-main:active{ transform:scale(.98); }
+.btn-ghost{ background:transparent; border:1.5px solid var(--brand); color:var(--brand-d); }
+.btn-ghost:hover{ background:var(--hair); }
+.btn-ghost:active{ transform:scale(.98); }
 .btn-sm{ padding:6px 12px; font-size:12px; border-radius:8px; }
-.btn-red{ background:#fee2e2; color:var(--red); }
+.btn-red{ background:var(--red-bg); color:var(--red); }
+.btn-red:hover{ filter:brightness(.96); }
+.btn:disabled{ opacity:.5; cursor:default; transform:none !important; }
+.btn:focus-visible,input:focus-visible,select:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 
 /* 今日代辦事項 */
-.todo-item{ display:flex; align-items:center; gap:8px; padding:8px 2px; border-bottom:1px solid var(--line); font-size:14px; }
+.todo-item{ display:flex; align-items:center; gap:9px; padding:9px 2px; border-bottom:1px solid var(--hair); font-size:14px; max-height:70px; overflow:hidden; }
 .todo-item:last-child{ border-bottom:none; }
-.todo-item input[type=checkbox]{ width:19px; height:19px; accent-color:var(--brand); flex-shrink:0; }
+input[type=checkbox].todo-checkbox{ appearance:none; -webkit-appearance:none; width:20px; height:20px; border:1.6px solid var(--line); border-radius:6px; flex-shrink:0; cursor:pointer; position:relative; transition:background-color .15s ease, border-color .15s ease; }
+input[type=checkbox].todo-checkbox:hover{ border-color:var(--brand); }
+input[type=checkbox].todo-checkbox:checked{ background:var(--brand); border-color:var(--brand); }
+input[type=checkbox].todo-checkbox:checked::after{ content:""; position:absolute; left:6px; top:2px; width:5px; height:10px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); animation:checkPop .28s cubic-bezier(.34,1.56,.64,1) both; }
+input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+@keyframes checkPop{ from{ transform:rotate(45deg) scale(0); opacity:0; } to{ transform:rotate(45deg) scale(1); opacity:1; } }
 .todo-item .t{ flex:1; }
 .todo-item.auto{ color:var(--brand-d); font-weight:700; }
-.todo-item .del{ background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 6px; }
+.todo-item .del{ background:none; border:none; color:var(--muted); cursor:pointer; width:32px; height:32px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease, color .15s ease; }
+.todo-item .del:hover{ background:var(--red-bg); color:var(--red); }
+.todo-item .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.todo-item.todo-exit{ animation:todoExit .46s cubic-bezier(.4,0,.6,1) forwards; }
+.todo-item.todo-exit .t{ text-decoration:line-through; color:var(--muted); }
+@keyframes todoExit{
+  0%{ background:transparent; opacity:1; transform:translateX(0); max-height:70px; }
+  18%{ background:var(--page-bg); }
+  55%{ background:transparent; opacity:1; transform:translateX(0); max-height:70px; }
+  100%{ opacity:0; transform:translateX(18px); max-height:0; padding-top:0; padding-bottom:0; margin:0; border-color:transparent; }
+}
+.todo-item.todo-delete-exit{ animation:todoDeleteExit .26s cubic-bezier(.4,0,1,1) forwards; }
+@keyframes todoDeleteExit{
+  0%{ opacity:1; transform:translateX(0); max-height:70px; }
+  100%{ opacity:0; transform:translateX(18px); max-height:0; padding-top:0; padding-bottom:0; margin:0; border-color:transparent; }
+}
 .todo-add{ display:flex; gap:8px; margin-top:10px; }
-.todo-add input{ flex:1; padding:9px 10px; border:1.5px solid var(--line); border-radius:10px; font-size:14px; }
+.todo-add input{ flex:1; padding:9px 10px; border:1.5px solid var(--line); border-radius:10px; font-size:14px; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
 .todo-add input:focus{ outline:none; border-color:var(--brand); }
+.todo-add input:disabled{ opacity:.6; }
 
 /* 月曆 */
 .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.cal-head b{ font-size:15px; }
-.cal-nav{ background:var(--brand-bg); border:none; color:var(--brand-d); width:32px; height:32px; border-radius:9px; font-size:14px; cursor:pointer; }
+.cal-head b{ font-size:15px; font-variant-numeric:tabular-nums; }
+.cal-nav{ background:var(--hair); border:none; color:var(--brand-d); width:32px; height:32px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease, transform .12s ease; }
+.cal-nav:hover{ background:var(--line); }
+.cal-nav:active{ transform:scale(.92); }
+.cal-nav:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
 .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; touch-action:pan-y; }
-.cal-cell{ min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:#fff; overflow:hidden; }
+.cal-cell{ min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:var(--card); overflow:hidden; transition:background-color .16s ease, border-color .16s ease, transform .12s ease; }
+.cal-cell:hover{ background:var(--hair); border-color:var(--brand); }
+.cal-cell:active{ transform:scale(.96); }
+.cal-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-cell.blank{ visibility:hidden; cursor:default; }
-.cal-cell.today{ border:2px solid var(--brand); background:var(--brand-bg); }
-.cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); }
+.cal-cell.today{ border:2px solid var(--brand); background:var(--page-bg); }
+.cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
 .cal-cell.today .cal-daynum{ color:var(--brand-d); }
 .cal-pill{ font-size:9.5px; border-radius:5px; padding:1px 3px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
 .cal-more{ font-size:9px; color:var(--muted); margin-top:1px; }
 
 /* 彈窗 */
-.overlay{ position:fixed; inset:0; background:rgba(51,45,65,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
-.sheet{ background:#fff; width:100%; max-width:640px; border-radius:18px 18px 0 0; padding:16px; max-height:82vh; overflow-y:auto; animation:sheetIn .25s ease-out both; }
-@keyframes sheetIn{ from{ transform:translateY(30px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+.overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
+@keyframes overlayIn{ from{ opacity:0; } to{ opacity:1; } }
+.sheet{ background:var(--card); color:var(--ink); width:100%; max-width:640px; border-radius:18px 18px 0 0; padding:16px; max-height:82vh; overflow-y:auto; animation:sheetIn .2s cubic-bezier(.16,1,.3,1) both; }
+@keyframes sheetIn{ from{ transform:translateY(24px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
 .sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
 .sheet-head b{ font-size:16px; }
-.sheet-head .x{ background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; }
-.course-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }
+.sheet-head .x{ background:none; border:none; color:var(--muted); cursor:pointer; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
+.sheet-head .x:hover{ background:var(--hair); }
+.sheet-head .x:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.course-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--hair); max-height:70px; overflow:hidden; transition:border-color .2s; }
+.course-row.course-exit{ animation:todoDeleteExit .3s cubic-bezier(.4,0,1,1) forwards; }
 .course-row .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; }
 .course-row .ci{ flex:1; min-width:0; }
 .course-row .cn{ font-weight:700; font-size:14px; }
@@ -99,33 +165,79 @@ h3.sec{ color:var(--brand-d); font-size:15px; margin-bottom:10px; display:flex; 
 /* 表單 */
 .field{ margin-bottom:12px; }
 .field label{ display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:var(--brand-d); }
-.field input,.field select{ width:100%; padding:10px; border:1.5px solid var(--line); border-radius:10px; font-size:15px; background:#fff; }
+.field input,.field select{ width:100%; padding:10px; border:1.5px solid var(--line); border-radius:10px; font-size:15px; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
 .field input:focus,.field select:focus{ outline:none; border-color:var(--brand); }
 .field-row{ display:flex; gap:10px; }
 .field-row .field{ flex:1; }
 
 /* 後台類別管理 */
-.cat-row{ display:grid; grid-template-columns:1fr 56px 56px 30px; gap:6px; align-items:center; margin-bottom:8px; }
-.cat-row input{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; }
-.cat-head-row{ display:grid; grid-template-columns:1fr 56px 56px 30px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.cat-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; align-items:center; margin-bottom:8px; }
+.cat-row input{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
+.cat-row input:focus{ outline:none; border-color:var(--brand); }
+.cat-row .del{ background:none; border:none; color:var(--red); cursor:pointer; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
+.cat-row .del:hover{ background:var(--red-bg); }
+.cat-row .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.cat-head-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.cat-row-removed{ display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:var(--hair); border-radius:8px; margin-bottom:8px; font-size:13px; color:var(--muted); animation:catRemoved .18s ease both; }
+@keyframes catRemoved{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 
 /* 密碼閘 */
 .pin-box{ max-width:320px; margin:60px auto; text-align:center; }
-.pin-box input{ font-size:24px; text-align:center; letter-spacing:8px; width:200px; padding:10px; border:2px solid var(--brand); border-radius:12px; margin:14px 0; }
+.pin-box input{ font-size:24px; text-align:center; letter-spacing:8px; width:200px; padding:10px; border:2px solid var(--brand); border-radius:12px; margin:14px 0; background:var(--card); color:var(--ink); }
+.pin-box input:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.pin-box.shake{ animation:pinShake .32s ease; }
+@keyframes pinShake{ 0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-8px); } 40%{ transform:translateX(7px); } 60%{ transform:translateX(-5px); } 80%{ transform:translateX(3px); } }
+.pin-err{ color:var(--red); font-size:13px; margin-top:10px; }
+.pin-hint{ margin-top:12px; font-size:12px; }
+
+/* 提示條 toast */
+.toast{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:var(--ink); color:var(--page-bg); padding:11px 10px 11px 18px; border-radius:12px; display:flex; align-items:center; gap:14px; font-size:13.5px; box-shadow:0 10px 30px -8px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.15); z-index:200; animation:toastIn .2s cubic-bezier(.16,1,.3,1) both; max-width:calc(100% - 32px); }
+@keyframes toastIn{ from{ opacity:0; transform:translateX(-50%) translateY(12px); } to{ opacity:1; transform:translateX(-50%) translateY(0); } }
+.toast button{ background:rgba(255,255,255,.16); border:none; color:inherit; font-weight:700; padding:6px 12px; border-radius:8px; cursor:pointer; flex-shrink:0; transition:background-color .15s ease; }
+.toast button:hover{ background:rgba(255,255,255,.28); }
+
+/* 骨架載入 */
+.skeleton-card .sk-line{ height:14px; border-radius:6px; margin-bottom:10px; background:linear-gradient(90deg, var(--line) 25%, var(--hair) 37%, var(--line) 63%); background-size:400% 100%; animation:skShimmer 1.4s ease infinite; }
+.sk-w40{ width:40%; } .sk-w90{ width:90%; } .sk-w70{ width:70%; height:20px; }
+@keyframes skShimmer{ 0%{ background-position:100% 0; } 100%{ background-position:0 0; } }
+.sk-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:12px; }
+.sk-cell{ height:52px; border-radius:8px; background:var(--line); }
+
+::selection{ background:var(--brand); color:#fff; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>💜 課務事前準備系統</h1>
+  <h1><span class="brand-badge" id="brandBadge"></span> 課務事前準備系統</h1>
   <div class="sub">形象顧問課務行事曆</div>
-  <button class="gear" id="gearBtn" style="display:none" onclick="toggleSettings()">⚙️</button>
+  <button class="gear" id="gearBtn" style="display:none" onclick="toggleSettings()" aria-label="設定"></button>
 </header>
 
 <main id="view"><div class="empty">載入中…</div></main>
 <div id="modalRoot"></div>
+<div id="toastRoot"></div>
 
 <script>
+/* ================= 圖示（統一線條風格，取代表情符號） ================= */
+const ICONS = {
+  lock: '<svg class="ic" viewBox="0 0 20 20" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="9" width="11" height="8" rx="2"/><path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9"/></svg>',
+  check: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4L16 6"/></svg>',
+  calendar: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v3M13 2.5v3"/></svg>',
+  clock: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10.5" r="7"/><path d="M10 6.5v4l3 2"/></svg>',
+  tag: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 3H4v6.5L11 16l6-6-6.5-7Z"/><circle cx="7.3" cy="6.3" r="1" fill="currentColor" stroke="none"/></svg>',
+  key: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="13" r="3.2"/><path d="M9.2 10.8 16 4M13.2 7.6l2 2M16 4l1.6 1.6"/></svg>',
+  gear: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 3v1.6M10 15.4V17M17 10h-1.6M4.6 10H3M14.9 5.1l-1.1 1.1M6.2 13.7l-1.1 1.1M14.9 14.9l-1.1-1.1M6.2 6.3 5.1 5.1"/></svg>',
+  home: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 10 4l6.5 5.5"/><path d="M5.5 8.5V16h9V8.5"/></svg>',
+  chevronLeft: '<svg class="ic" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg>',
+  chevronRight: '<svg class="ic" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.5 13 10l-5.5 5.5"/></svg>',
+  x: '<svg class="ic" viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>'
+};
+
 /* ================= 預設課程類別 ================= */
 const DEFAULT_CATEGORIES = [
   { id:"jl", name:"形象精靈",         days:2, reminderLeadDays:7 },
@@ -148,6 +260,11 @@ let page = "home";          // "home" | "settings"
 let catDraft = null;        // 後台編輯課程類別時的暫存陣列
 let modal = null;           // {type:"day",date} | {type:"addCourse"}
 let courseDraft = null;
+let busy = { todoAdd:false, courseSave:false, catSave:false, pinSave:false };
+let exitingTodoIds = new Set();   // 打勾完成，播放招牌動畫中
+let deletingTodoIds = new Set();  // 按下刪除，播放退場動畫中
+let deletingCourseIds = new Set();
+let toast = null;           // {message, timerId, onCommit, onRestore}
 
 const today0 = new Date();
 let viewYear = today0.getFullYear();
@@ -163,6 +280,29 @@ function diffDaysStr(a, b){ return Math.round((parseYMD(b) - parseYMD(a)) / 8640
 function dateLabel(s){ const d = parseYMD(s); return `${d.getMonth()+1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`; }
 function allCategories(){ return settings.categories.concat([OTHER_CAT]); }
 function catColor(catId){ const list = allCategories(); const idx = list.findIndex(c=>c.id===catId); return CAT_COLORS[idx>=0 ? idx % CAT_COLORS.length : 0]; }
+
+/* ================= 提示條（成功訊息／可復原的刪除） ================= */
+function commitPendingToast(){ if (toast){ clearTimeout(toast.timerId); toast.onCommit(); toast=null; } }
+function showToast(message, onCommit, onRestore){
+  commitPendingToast();
+  const ms = onRestore ? 4500 : 2200;
+  const timerId = setTimeout(()=>{ toast=null; onCommit(); renderToastRoot(); }, ms);
+  toast = { message, timerId, onCommit, onRestore };
+  renderToastRoot();
+}
+function clickUndoToast(){
+  if (!toast || !toast.onRestore) return;
+  clearTimeout(toast.timerId);
+  const restore = toast.onRestore;
+  toast = null; renderToastRoot();
+  restore();
+}
+function renderToastRoot(){
+  const el = document.getElementById("toastRoot");
+  if (!el) return;
+  if (!toast){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="toast"><span>${esc(toast.message)}</span>${toast.onRestore ? `<button onclick="clickUndoToast()">復原</button>` : ""}</div>`;
+}
 
 /* ================= Firebase 連線 ================= */
 window.addEventListener("fb-ready", () => {
@@ -197,17 +337,25 @@ window.addEventListener("fb-error", () => { fbFail = true; render(); });
 
 /* ================= 密碼閘 ================= */
 function tryPin(){
-  const v = document.getElementById("pinInput").value.trim();
+  const inputEl = document.getElementById("pinInput");
+  const v = (inputEl.value || "").trim();
   const pin = settings.pin || DEFAULT_PIN;
-  if (v === pin) { appUnlocked = true; sessionStorage.setItem("cp_unlocked","1"); render(); }
-  else alert("密碼錯誤");
+  if (v === pin) { appUnlocked = true; sessionStorage.setItem("cp_unlocked","1"); render(); return; }
+  const box = document.getElementById("pinBox");
+  if (box){ box.classList.remove("shake"); void box.offsetWidth; box.classList.add("shake"); }
+  let errEl = document.getElementById("pinErr");
+  if (!errEl && box){ errEl = document.createElement("div"); errEl.id = "pinErr"; errEl.className = "pin-err"; box.appendChild(errEl); }
+  if (errEl) errEl.textContent = "密碼錯誤，請再試一次";
+  inputEl.value = ""; inputEl.focus();
 }
 function renderPinGate(){
-  return `<div class="pin-box card">
-    <div style="font-size:40px">🔐</div><b>課務事前準備系統</b>
+  return `<div class="pin-box card" id="pinBox">
+    ${ICONS.lock}
+    <b>課務事前準備系統</b>
     <div class="muted" style="margin-top:6px">請輸入團隊共用密碼</div>
     <div><input id="pinInput" type="password" inputmode="numeric" placeholder="••••" onkeydown="if(event.key==='Enter')tryPin()"></div>
     <button class="btn btn-main" onclick="tryPin()">進入系統</button>
+    <div class="muted pin-hint">忘記密碼請找排課負責人</div>
   </div>`;
 }
 
@@ -217,15 +365,29 @@ function toggleSettings(){ page = (page==="home") ? "settings" : "home"; if(page
 function render(){
   const v = document.getElementById("view");
   const gear = document.getElementById("gearBtn");
-  gear.style.display = appUnlocked ? "block" : "none";
-  gear.textContent = page==="settings" ? "🏠" : "⚙️";
+  const badge = document.getElementById("brandBadge");
+  if (badge) badge.innerHTML = ICONS.calendar;
+  gear.style.display = appUnlocked ? "flex" : "none";
+  gear.innerHTML = page==="settings" ? ICONS.home : ICONS.gear;
 
   if (!appUnlocked) { v.innerHTML = renderPinGate(); renderModalRoot(); return; }
-  if (!fbReady && !fbFail) { v.innerHTML = '<div class="empty">載入中…</div>'; renderModalRoot(); return; }
+  if (!fbReady && !fbFail) { v.innerHTML = renderSkeleton(); renderModalRoot(); return; }
 
   v.innerHTML = page==="settings" ? renderSettings() : renderHome();
   if (page==="home") bindCalendarSwipe();
   renderModalRoot();
+}
+
+function renderSkeleton(){
+  return `<div class="card skeleton-card">
+      <div class="sk-line sk-w40"></div>
+      <div class="sk-line sk-w90"></div>
+      <div class="sk-line sk-w70"></div>
+    </div>
+    <div class="card skeleton-card">
+      <div class="sk-line sk-w40" style="height:18px"></div>
+      <div class="sk-grid">${Array(35).fill('<div class="sk-cell"></div>').join("")}</div>
+    </div>`;
 }
 
 /* ================= 首頁：今日代辦事項 ================= */
@@ -234,53 +396,78 @@ function autoTodoItems(){
   const items = [];
   for (const c of courses) {
     if (today >= c.startDate && today <= c.endDate) {
-      items.push(`🗓️ 今天有課：${esc(c.categoryName)}${c.startDate!==c.endDate ? "（多日課程）" : ""}`);
+      items.push(`${ICONS.calendar}<span class="t">今天有課：${esc(c.categoryName)}${c.startDate!==c.endDate ? "（多日課程）" : ""}</span>`);
     } else {
       const until = diffDaysStr(today, c.startDate);
       if (until > 0 && until === Number(c.reminderLeadDays)) {
-        items.push(`⏰ ${until} 天後開課提醒：${esc(c.categoryName)}（該打電話確認／發通知了）`);
+        items.push(`${ICONS.clock}<span class="t">${until} 天後開課提醒：${esc(c.categoryName)}（該打電話確認／發通知了）</span>`);
       }
     }
   }
   return items;
 }
+function nextUpcomingCourse(){
+  const today = todayStr();
+  const upcoming = courses.filter(c=>c.startDate>today).sort((a,b)=> a.startDate<b.startDate?-1:1);
+  return upcoming[0] || null;
+}
 
 function renderTodoCard(){
   const auto = autoTodoItems();
-  const manual = todos.filter(t=>!t.done).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-  return `<div class="card">
-    <h3 class="sec">✅ 今日代辦事項</h3>
-    ${auto.length ? auto.map(t=>`<div class="todo-item auto"><span class="t">${t}</span></div>`).join("") : ""}
-    ${manual.length ? manual.map(t=>`<div class="todo-item">
-        <input type="checkbox" onchange="toggleTodo('${t.id}', this.checked)">
+  const manual = todos.filter(t=>!t.done || exitingTodoIds.has(t.id)).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const hasContent = auto.length || manual.length;
+  const nxt = (!auto.length && !manual.length) ? nextUpcomingCourse() : null;
+  return `<div class="card${hasContent?' todo-active':''}">
+    <h3 class="sec">${ICONS.check} 今日代辦事項</h3>
+    ${auto.length ? auto.map(t=>`<div class="todo-item auto">${t}</div>`).join("") : ""}
+    ${manual.length ? manual.map(t=>{
+        const exiting = exitingTodoIds.has(t.id);
+        const deleting = deletingTodoIds.has(t.id);
+        const cls = exiting ? "todo-exit" : (deleting ? "todo-delete-exit" : "");
+        return `<div class="todo-item${cls?' '+cls:''}">
+        <input type="checkbox" class="todo-checkbox" ${t.done||exiting?"checked":""} onchange="checkTodo('${t.id}')">
         <span class="t">${esc(t.text)}</span>
-        <button class="del" onclick="deleteTodo('${t.id}')">✕</button>
-      </div>`).join("") : ""}
-    ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉</div>` : ""}
+        <button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>
+      </div>`;
+      }).join("") : ""}
+    ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉${nxt ? `<div class="muted" style="margin-top:6px">下一堂課：${nxt.startDate}．${esc(nxt.categoryName)}</div>` : ""}</div>` : ""}
     <div class="todo-add">
-      <input id="newTodoInput" placeholder="手動新增待辦（例如：訂餐盒）" onkeydown="if(event.key==='Enter')addTodo()">
-      <button class="btn btn-main btn-sm" onclick="addTodo()">新增</button>
+      <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="手動新增待辦（例如：訂餐盒）" onkeydown="if(event.key==='Enter')addTodo()">
+      <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="addTodo()">${busy.todoAdd?"處理中":"新增"}</button>
     </div>
   </div>`;
 }
 
-function addTodo(){
+async function addTodo(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
   const el = document.getElementById("newTodoInput");
   const text = el.value.trim();
   if (!text) return;
+  busy.todoAdd = true; render();
   const { db, collection, addDoc } = window.fb;
-  addDoc(collection(db,"cp_todos"), { text, done:false, createdAt:Date.now() })
-    .then(()=>{ el.value=""; })
-    .catch(e=>alert("新增失敗："+e.message));
+  try {
+    await addDoc(collection(db,"cp_todos"), { text, done:false, createdAt:Date.now() });
+  } catch(e){ alert("新增失敗："+e.message); }
+  busy.todoAdd = false; render();
+  const again = document.getElementById("newTodoInput");
+  if (again) again.focus();
 }
-function toggleTodo(id, done){
-  const { db, doc, updateDoc } = window.fb;
-  updateDoc(doc(db,"cp_todos",id), { done, doneAt: done ? Date.now() : null }).catch(e=>alert("更新失敗："+e.message));
+function checkTodo(id){
+  if (exitingTodoIds.has(id)) return;
+  exitingTodoIds.add(id);
+  render();
+  setTimeout(()=>{
+    exitingTodoIds.delete(id);
+    const { db, doc, updateDoc } = window.fb;
+    updateDoc(doc(db,"cp_todos",id), { done:true, doneAt:Date.now() }).catch(e=>alert("更新失敗："+e.message));
+  }, 460);
 }
-function deleteTodo(id){
-  const { db, doc, deleteDoc } = window.fb;
-  deleteDoc(doc(db,"cp_todos",id)).catch(e=>alert("刪除失敗："+e.message));
+function deleteTodoBtn(id){
+  deletingTodoIds.add(id); render();
+  showToast("已刪除待辦",
+    ()=>{ deletingTodoIds.delete(id); const { db, doc, deleteDoc } = window.fb; deleteDoc(doc(db,"cp_todos",id)).catch(e=>alert("刪除失敗："+e.message)); },
+    ()=>{ deletingTodoIds.delete(id); render(); }
+  );
 }
 
 /* ================= 首頁：月曆 ================= */
@@ -301,9 +488,9 @@ function renderCalendarCard(){
   const today = todayStr();
   return `<div class="card">
     <div class="cal-head">
-      <button class="cal-nav" onclick="prevMonth()">◀</button>
+      <button class="cal-nav" onclick="prevMonth()" aria-label="上個月">${ICONS.chevronLeft}</button>
       <b>${viewYear} 年 ${viewMonth+1} 月</b>
-      <button class="cal-nav" onclick="nextMonth()">▶</button>
+      <button class="cal-nav" onclick="nextMonth()" aria-label="下個月">${ICONS.chevronRight}</button>
     </div>
     <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
     <div class="cal-grid" id="calGrid">
@@ -314,14 +501,14 @@ function renderCalendarCard(){
         const more = dcs.length - shown.length;
         const isToday = dateStr === today;
         const dnum = Number(dateStr.slice(8,10));
-        return `<div class="cal-cell${isToday?' today':''}" onclick="openDay('${dateStr}')">
+        return `<div class="cal-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
           <div class="cal-daynum">${dnum}</div>
           ${shown.map(c=>`<div class="cal-pill" style="background:${catColor(c.categoryId)}22;color:${catColor(c.categoryId)}">${esc(c.categoryName)}</div>`).join("")}
           ${more>0 ? `<div class="cal-more">+${more}</div>` : ""}
         </div>`;
       }).join("")}
     </div>
-    <div class="muted" style="text-align:center;margin-top:10px">👆 點日期新增或查看課程・👈👉 左右滑動切換月份</div>
+    <div class="muted" style="text-align:center;margin-top:10px">點日期新增或查看課程．左右滑動切換月份</div>
   </div>`;
 }
 function prevMonth(){ viewMonth--; if (viewMonth<0){ viewMonth=11; viewYear--; } render(); }
@@ -339,7 +526,7 @@ function bindCalendarSwipe(){
 }
 
 function renderHome(){
-  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，資料暫時無法讀取或儲存。</div>` : ""}
+  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，請檢查網路後再試一次。<button class="btn btn-ghost btn-sm" onclick="location.reload()">重新整理</button></div>` : ""}
     ${renderTodoCard()}
     ${renderCalendarCard()}`;
 }
@@ -367,7 +554,7 @@ function updateEndPreview(){
   const el = document.getElementById("endDatePreview");
   if (el) el.textContent = addDaysStr(courseDraft.date, courseDraft.days-1);
 }
-function saveCourse(){
+async function saveCourse(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
   const cat = allCategories().find(c=>c.id===courseDraft.categoryId);
   const name = courseDraft.categoryId==="other" ? courseDraft.customName.trim() : cat.name;
@@ -376,17 +563,23 @@ function saveCourse(){
   const reminderLeadDays = Math.max(0, Math.floor(Number(courseDraft.reminderLeadDays)||0));
   const startDate = courseDraft.date;
   const endDate = addDaysStr(startDate, days-1);
+  busy.courseSave = true; renderModalRoot();
   const { db, collection, addDoc } = window.fb;
-  addDoc(collection(db,"cp_courses"), {
-    categoryId: courseDraft.categoryId, categoryName: name,
-    startDate, endDate, days, reminderLeadDays, createdAt: Date.now()
-  }).then(()=>{ modal = { type:"day", date:startDate }; renderModalRoot(); })
-    .catch(e=>alert("新增失敗："+e.message));
+  try {
+    await addDoc(collection(db,"cp_courses"), {
+      categoryId: courseDraft.categoryId, categoryName: name,
+      startDate, endDate, days, reminderLeadDays, createdAt: Date.now()
+    });
+    modal = { type:"day", date:startDate };
+  } catch(e){ alert("新增失敗："+e.message); }
+  busy.courseSave = false; renderModalRoot();
 }
 function deleteCourse(id){
-  if (!confirm("確定要刪除這場課程嗎？")) return;
-  const { db, doc, deleteDoc } = window.fb;
-  deleteDoc(doc(db,"cp_courses",id)).catch(e=>alert("刪除失敗："+e.message));
+  deletingCourseIds.add(id); renderModalRoot();
+  showToast("已刪除課程",
+    ()=>{ deletingCourseIds.delete(id); const { db, doc, deleteDoc } = window.fb; deleteDoc(doc(db,"cp_courses",id)).catch(e=>alert("刪除失敗："+e.message)); },
+    ()=>{ deletingCourseIds.delete(id); renderModalRoot(); }
+  );
 }
 
 function renderModalRoot(){
@@ -398,8 +591,8 @@ function renderModalRoot(){
 function renderDayModal(){
   const dcs = dayCourses(modal.date);
   return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-head"><b>${dateLabel(modal.date)}</b><button class="x" onclick="closeModal()">✕</button></div>
-    ${dcs.length ? dcs.map(c=>`<div class="course-row">
+    <div class="sheet-head"><b>${dateLabel(modal.date)}</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
+    ${dcs.length ? dcs.map(c=>`<div class="course-row${deletingCourseIds.has(c.id)?' course-exit':''}">
         <span class="dot" style="background:${catColor(c.categoryId)}"></span>
         <div class="ci"><div class="cn">${esc(c.categoryName)}</div>
         <div class="cm">${c.startDate===c.endDate ? "當天課程" : c.startDate+" ～ "+c.endDate}・提前 ${c.reminderLeadDays} 天提醒</div></div>
@@ -412,7 +605,7 @@ function renderAddCourseModal(){
   const cats = allCategories();
   const isOther = courseDraft.categoryId === "other";
   return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-head"><b>新增課程</b><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="sheet-head"><b>新增課程</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
     <div class="field">
       <label>課程類別</label>
       <select onchange="pickDraftCategory(this.value)">
@@ -426,56 +619,62 @@ function renderAddCourseModal(){
     </div>
     <div class="muted" style="margin:-6px 0 12px">結束日期：<b id="endDatePreview">${addDaysStr(courseDraft.date, courseDraft.days-1)}</b></div>
     <div class="field"><label>提前幾天提醒開課</label><input type="number" min="0" value="${courseDraft.reminderLeadDays}" oninput="courseDraft.reminderLeadDays=Math.max(0,Math.floor(Number(this.value)||0))"></div>
-    <button class="btn btn-main" style="width:100%" onclick="saveCourse()">儲存課程</button>
+    <button class="btn btn-main" style="width:100%" ${busy.courseSave?"disabled":""} onclick="saveCourse()">${busy.courseSave?"儲存中…":"儲存課程"}</button>
   </div></div>`;
 }
 
 /* ================= 後台：課程類別管理 ================= */
 function addCatRow(){ catDraft.push({ id:"c"+Date.now(), name:"", days:1, reminderLeadDays:3 }); render(); }
-function deleteCatRow(idx){
-  if (!confirm("確定要刪除這個課程類別嗎？（已建立的課程紀錄不受影響）")) return;
-  catDraft.splice(idx,1); render();
-}
+function deleteCatRow(idx){ catDraft[idx]._removed = true; render(); }
+function restoreCatRow(idx){ delete catDraft[idx]._removed; render(); }
 function updateCatDraft(idx, field, value){
   if (field==="name") catDraft[idx].name = value;
   else catDraft[idx][field] = Math.max(field==="reminderLeadDays"?0:1, Math.floor(Number(value)||(field==="reminderLeadDays"?0:1)));
 }
-function saveCategories(){
-  const cleaned = catDraft.filter(c=>c.name && c.name.trim()).map(c=>({ id:c.id, name:c.name.trim(), days:c.days, reminderLeadDays:c.reminderLeadDays }));
+async function saveCategories(){
+  const cleaned = catDraft.filter(c=>!c._removed && c.name && c.name.trim()).map(c=>({ id:c.id, name:c.name.trim(), days:c.days, reminderLeadDays:c.reminderLeadDays }));
   if (!cleaned.length) { alert("至少要保留一個課程類別"); return; }
+  busy.catSave = true; render();
   const { db, doc, setDoc } = window.fb;
-  setDoc(doc(db,"cp_settings","app"), { ...settings, categories: cleaned }, { merge:true })
-    .then(()=>alert("課程類別已儲存"))
-    .catch(e=>alert("儲存失敗："+e.message));
+  try {
+    await setDoc(doc(db,"cp_settings","app"), { ...settings, categories: cleaned }, { merge:true });
+    showToast("課程類別已儲存");
+  } catch(e){ alert("儲存失敗："+e.message); }
+  busy.catSave = false; render();
 }
-function savePin(){
+async function savePin(){
   const v = (document.getElementById("setPin").value || "").trim() || DEFAULT_PIN;
+  busy.pinSave = true; render();
   const { db, doc, setDoc } = window.fb;
-  setDoc(doc(db,"cp_settings","app"), { ...settings, pin:v }, { merge:true })
-    .then(()=>alert("密碼已儲存"))
-    .catch(e=>alert("儲存失敗："+e.message));
+  try {
+    await setDoc(doc(db,"cp_settings","app"), { ...settings, pin:v }, { merge:true });
+    showToast("密碼已儲存");
+  } catch(e){ alert("儲存失敗："+e.message); }
+  busy.pinSave = false; render();
 }
 
 function renderSettings(){
   if (!catDraft) catDraft = JSON.parse(JSON.stringify(settings.categories));
-  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，暫時無法儲存設定。</div>` : ""}
+  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，暫時無法儲存設定。<button class="btn btn-ghost btn-sm" onclick="location.reload()">重新整理</button></div>` : ""}
     <div class="card">
-      <h3 class="sec">🏷️ 課程類別管理</h3>
+      <h3 class="sec">${ICONS.tag} 課程類別管理</h3>
       <div class="cat-head-row"><div>名稱</div><div>天數</div><div>提醒</div><div></div></div>
-      ${catDraft.map((c,idx)=>`<div class="cat-row">
+      ${catDraft.map((c,idx)=> c._removed
+        ? `<div class="cat-row-removed"><span>已移除：${esc(c.name||"（未命名）")}</span><button class="btn btn-ghost btn-sm" onclick="restoreCatRow(${idx})">復原</button></div>`
+        : `<div class="cat-row">
         <input value="${esc(c.name)}" placeholder="類別名稱" oninput="updateCatDraft(${idx},'name',this.value)">
         <input type="number" min="1" value="${c.days}" oninput="updateCatDraft(${idx},'days',this.value)">
         <input type="number" min="0" value="${c.reminderLeadDays}" oninput="updateCatDraft(${idx},'reminderLeadDays',this.value)">
-        <button class="del" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer" onclick="deleteCatRow(${idx})">✕</button>
+        <button class="del" aria-label="刪除類別" onclick="deleteCatRow(${idx})">${ICONS.x}</button>
       </div>`).join("")}
       <button class="btn btn-ghost btn-sm" onclick="addCatRow()">＋ 新增類別</button>
-      <div style="margin-top:12px"><button class="btn btn-main" style="width:100%" onclick="saveCategories()">儲存課程類別</button></div>
+      <div style="margin-top:12px"><button class="btn btn-main" style="width:100%" ${busy.catSave?"disabled":""} onclick="saveCategories()">${busy.catSave?"儲存中…":"儲存課程類別"}</button></div>
       <div class="muted" style="margin-top:8px">「其他（手動輸入）」為系統固定選項，新增課程時可自行輸入名稱，不需在此設定。</div>
     </div>
     <div class="card">
-      <h3 class="sec">🔑 共用密碼</h3>
+      <h3 class="sec">${ICONS.key} 共用密碼</h3>
       <div class="field"><input id="setPin" value="${esc(settings.pin||DEFAULT_PIN)}"></div>
-      <button class="btn btn-main btn-sm" onclick="savePin()">儲存密碼</button>
+      <button class="btn btn-main btn-sm" ${busy.pinSave?"disabled":""} onclick="savePin()">${busy.pinSave?"儲存中…":"儲存密碼"}</button>
     </div>`;
 }
 
