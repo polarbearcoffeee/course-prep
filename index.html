@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>課務事前準備系統</title>
+
+<!-- ===================================================================
+     Firebase 設定（沿用 airport-car 專案，使用 cp_ 開頭的獨立資料表）
+==================================================================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, getDoc, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAOHDCmnhV4djJnaVwhp1P3Ucand_DJ4M8",
+  authDomain: "airport-car.firebaseapp.com",
+  projectId: "airport-car",
+  storageBucket: "airport-car.firebasestorage.app",
+  messagingSenderId: "497915579586",
+  appId: "1:497915579586:web:c03ae3f86abfd5a01f7f5b"
+};
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.fb = { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc, getDoc, query, orderBy };
+  window.dispatchEvent(new Event("fb-ready"));
+} catch (e) {
+  window.fbError = e.message;
+  window.dispatchEvent(new Event("fb-error"));
+}
+</script>
+
+<style>
+:root{
+  --brand:#8b5cf6; --brand-d:#6d28d9; --brand-bg:#f5f3ff;
+  --ink:#332d41; --line:#e9e3f7;
+  --ok:#16a34a; --red:#dc2626; --card:#ffffff;
+  --muted:#7c7291;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+body{ font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; background:var(--brand-bg); color:var(--ink); padding-bottom:40px; }
+header{ background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; padding:18px 16px 12px; text-align:center; position:relative; }
+header h1{ font-size:19px; letter-spacing:1px; }
+header .sub{ font-size:12px; opacity:.9; margin-top:4px; }
+header .gear{ position:absolute; right:14px; top:16px; background:rgba(255,255,255,.2); border:none; color:#fff; width:36px; height:36px; border-radius:10px; font-size:17px; cursor:pointer; }
+main{ max-width:640px; margin:0 auto; padding:14px 12px; }
+.err-banner{ background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:10px; padding:10px 12px; font-size:13px; margin-bottom:12px; }
+.card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; box-shadow:0 1px 3px rgba(109,40,217,.06), 0 8px 18px -10px rgba(109,40,217,.16); }
+h3.sec{ color:var(--brand-d); font-size:15px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.muted{ color:var(--muted); font-size:12px; }
+.empty{ text-align:center; color:#b3a8d6; padding:24px 0; font-size:14px; }
+.btn{ border:none; border-radius:10px; padding:11px 16px; font-size:14px; font-weight:800; cursor:pointer; }
+.btn-main{ background:var(--brand); color:#fff; }
+.btn-ghost{ background:#fff; border:1.5px solid var(--brand); color:var(--brand-d); }
+.btn-sm{ padding:6px 12px; font-size:12px; border-radius:8px; }
+.btn-red{ background:#fee2e2; color:var(--red); }
+
+/* 今日代辦事項 */
+.todo-item{ display:flex; align-items:center; gap:8px; padding:8px 2px; border-bottom:1px solid var(--line); font-size:14px; }
+.todo-item:last-child{ border-bottom:none; }
+.todo-item input[type=checkbox]{ width:19px; height:19px; accent-color:var(--brand); flex-shrink:0; }
+.todo-item .t{ flex:1; }
+.todo-item.auto{ color:var(--brand-d); font-weight:700; }
+.todo-item .del{ background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 6px; }
+.todo-add{ display:flex; gap:8px; margin-top:10px; }
+.todo-add input{ flex:1; padding:9px 10px; border:1.5px solid var(--line); border-radius:10px; font-size:14px; }
+.todo-add input:focus{ outline:none; border-color:var(--brand); }
+
+/* 月曆 */
+.cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.cal-head b{ font-size:15px; }
+.cal-nav{ background:var(--brand-bg); border:none; color:var(--brand-d); width:32px; height:32px; border-radius:9px; font-size:14px; cursor:pointer; }
+.cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; touch-action:pan-y; }
+.cal-cell{ min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:#fff; overflow:hidden; }
+.cal-cell.blank{ visibility:hidden; cursor:default; }
+.cal-cell.today{ border:2px solid var(--brand); background:var(--brand-bg); }
+.cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); }
+.cal-cell.today .cal-daynum{ color:var(--brand-d); }
+.cal-pill{ font-size:9.5px; border-radius:5px; padding:1px 3px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
+.cal-more{ font-size:9px; color:var(--muted); margin-top:1px; }
+
+/* 彈窗 */
+.overlay{ position:fixed; inset:0; background:rgba(51,45,65,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; }
+.sheet{ background:#fff; width:100%; max-width:640px; border-radius:18px 18px 0 0; padding:16px; max-height:82vh; overflow-y:auto; animation:sheetIn .25s ease-out both; }
+@keyframes sheetIn{ from{ transform:translateY(30px); opacity:0; } to{ transform:translateY(0); opacity:1; } }
+.sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.sheet-head b{ font-size:16px; }
+.sheet-head .x{ background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; }
+.course-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }
+.course-row .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.course-row .ci{ flex:1; min-width:0; }
+.course-row .cn{ font-weight:700; font-size:14px; }
+.course-row .cm{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+/* 表單 */
+.field{ margin-bottom:12px; }
+.field label{ display:block; font-size:13px; font-weight:700; margin-bottom:5px; color:var(--brand-d); }
+.field input,.field select{ width:100%; padding:10px; border:1.5px solid var(--line); border-radius:10px; font-size:15px; background:#fff; }
+.field input:focus,.field select:focus{ outline:none; border-color:var(--brand); }
+.field-row{ display:flex; gap:10px; }
+.field-row .field{ flex:1; }
+
+/* 後台類別管理 */
+.cat-row{ display:grid; grid-template-columns:1fr 56px 56px 30px; gap:6px; align-items:center; margin-bottom:8px; }
+.cat-row input{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; }
+.cat-head-row{ display:grid; grid-template-columns:1fr 56px 56px 30px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
+
+/* 密碼閘 */
+.pin-box{ max-width:320px; margin:60px auto; text-align:center; }
+.pin-box input{ font-size:24px; text-align:center; letter-spacing:8px; width:200px; padding:10px; border:2px solid var(--brand); border-radius:12px; margin:14px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💜 課務事前準備系統</h1>
+  <div class="sub">形象顧問課務行事曆</div>
+  <button class="gear" id="gearBtn" style="display:none" onclick="toggleSettings()">⚙️</button>
+</header>
+
+<main id="view"><div class="empty">載入中…</div></main>
+<div id="modalRoot"></div>
+
+<script>
+/* ================= 預設課程類別 ================= */
+const DEFAULT_CATEGORIES = [
+  { id:"jl", name:"形象精靈",         days:2, reminderLeadDays:7 },
+  { id:"gn", name:"高能量形象密碼講座", days:1, reminderLeadDays:3 },
+  { id:"xj", name:"形象小聚",         days:1, reminderLeadDays:3 },
+  { id:"cs", name:"色彩能量入門",      days:1, reminderLeadDays:3 }
+];
+const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:3 };
+const DEFAULT_PIN = "1234";
+const CAT_COLORS = ["#8b5cf6","#ec4899","#f59e0b","#10b981","#3b82f6","#ef4444","#0ea5e9","#a855f7"];
+const WEEKDAYS = ["日","一","二","三","四","五","六"];
+
+/* ================= 共用狀態 ================= */
+let fbReady = false, fbFail = false;
+let appUnlocked = sessionStorage.getItem("cp_unlocked") === "1";
+let settings = { pin:"", categories: DEFAULT_CATEGORIES.slice() };
+let courses = [];
+let todos = [];
+let page = "home";          // "home" | "settings"
+let catDraft = null;        // 後台編輯課程類別時的暫存陣列
+let modal = null;           // {type:"day",date} | {type:"addCourse"}
+let courseDraft = null;
+
+const today0 = new Date();
+let viewYear = today0.getFullYear();
+let viewMonth = today0.getMonth();
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function pad(n){ return String(n).padStart(2,"0"); }
+function fmtYMD(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function parseYMD(s){ const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d, 12, 0, 0); }
+function todayStr(){ return fmtYMD(new Date()); }
+function addDaysStr(s, n){ const d = parseYMD(s); d.setDate(d.getDate()+n); return fmtYMD(d); }
+function diffDaysStr(a, b){ return Math.round((parseYMD(b) - parseYMD(a)) / 86400000); }
+function dateLabel(s){ const d = parseYMD(s); return `${d.getMonth()+1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`; }
+function allCategories(){ return settings.categories.concat([OTHER_CAT]); }
+function catColor(catId){ const list = allCategories(); const idx = list.findIndex(c=>c.id===catId); return CAT_COLORS[idx>=0 ? idx % CAT_COLORS.length : 0]; }
+
+/* ================= Firebase 連線 ================= */
+window.addEventListener("fb-ready", () => {
+  fbReady = true;
+  const { db, doc, setDoc, onSnapshot, collection } = window.fb;
+
+  onSnapshot(doc(db,"cp_settings","app"), snap => {
+    if (snap.exists()) {
+      const data = snap.data();
+      settings = {
+        pin: data.pin || DEFAULT_PIN,
+        categories: Array.isArray(data.categories) && data.categories.length ? data.categories : DEFAULT_CATEGORIES.slice()
+      };
+    } else {
+      settings = { pin: DEFAULT_PIN, categories: DEFAULT_CATEGORIES.slice() };
+      setDoc(doc(db,"cp_settings","app"), settings).catch(()=>{});
+    }
+    render();
+  }, err => console.warn("settings", err));
+
+  onSnapshot(collection(db,"cp_courses"), snap => {
+    courses = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    render();
+  }, err => console.warn("courses", err));
+
+  onSnapshot(collection(db,"cp_todos"), snap => {
+    todos = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    render();
+  }, err => console.warn("todos", err));
+});
+window.addEventListener("fb-error", () => { fbFail = true; render(); });
+
+/* ================= 密碼閘 ================= */
+function tryPin(){
+  const v = document.getElementById("pinInput").value.trim();
+  const pin = settings.pin || DEFAULT_PIN;
+  if (v === pin) { appUnlocked = true; sessionStorage.setItem("cp_unlocked","1"); render(); }
+  else alert("密碼錯誤");
+}
+function renderPinGate(){
+  return `<div class="pin-box card">
+    <div style="font-size:40px">🔐</div><b>課務事前準備系統</b>
+    <div class="muted" style="margin-top:6px">請輸入團隊共用密碼</div>
+    <div><input id="pinInput" type="password" inputmode="numeric" placeholder="••••" onkeydown="if(event.key==='Enter')tryPin()"></div>
+    <button class="btn btn-main" onclick="tryPin()">進入系統</button>
+  </div>`;
+}
+
+/* ================= 畫面切換 ================= */
+function toggleSettings(){ page = (page==="home") ? "settings" : "home"; if(page==="settings") catDraft = JSON.parse(JSON.stringify(settings.categories)); render(); window.scrollTo(0,0); }
+
+function render(){
+  const v = document.getElementById("view");
+  const gear = document.getElementById("gearBtn");
+  gear.style.display = appUnlocked ? "block" : "none";
+  gear.textContent = page==="settings" ? "🏠" : "⚙️";
+
+  if (!appUnlocked) { v.innerHTML = renderPinGate(); renderModalRoot(); return; }
+  if (!fbReady && !fbFail) { v.innerHTML = '<div class="empty">載入中…</div>'; renderModalRoot(); return; }
+
+  v.innerHTML = page==="settings" ? renderSettings() : renderHome();
+  if (page==="home") bindCalendarSwipe();
+  renderModalRoot();
+}
+
+/* ================= 首頁：今日代辦事項 ================= */
+function autoTodoItems(){
+  const today = todayStr();
+  const items = [];
+  for (const c of courses) {
+    if (today >= c.startDate && today <= c.endDate) {
+      items.push(`🗓️ 今天有課：${esc(c.categoryName)}${c.startDate!==c.endDate ? "（多日課程）" : ""}`);
+    } else {
+      const until = diffDaysStr(today, c.startDate);
+      if (until > 0 && until === Number(c.reminderLeadDays)) {
+        items.push(`⏰ ${until} 天後開課提醒：${esc(c.categoryName)}（該打電話確認／發通知了）`);
+      }
+    }
+  }
+  return items;
+}
+
+function renderTodoCard(){
+  const auto = autoTodoItems();
+  const manual = todos.filter(t=>!t.done).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  return `<div class="card">
+    <h3 class="sec">✅ 今日代辦事項</h3>
+    ${auto.length ? auto.map(t=>`<div class="todo-item auto"><span class="t">${t}</span></div>`).join("") : ""}
+    ${manual.length ? manual.map(t=>`<div class="todo-item">
+        <input type="checkbox" onchange="toggleTodo('${t.id}', this.checked)">
+        <span class="t">${esc(t.text)}</span>
+        <button class="del" onclick="deleteTodo('${t.id}')">✕</button>
+      </div>`).join("") : ""}
+    ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉</div>` : ""}
+    <div class="todo-add">
+      <input id="newTodoInput" placeholder="手動新增待辦（例如：訂餐盒）" onkeydown="if(event.key==='Enter')addTodo()">
+      <button class="btn btn-main btn-sm" onclick="addTodo()">新增</button>
+    </div>
+  </div>`;
+}
+
+function addTodo(){
+  if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
+  const el = document.getElementById("newTodoInput");
+  const text = el.value.trim();
+  if (!text) return;
+  const { db, collection, addDoc } = window.fb;
+  addDoc(collection(db,"cp_todos"), { text, done:false, createdAt:Date.now() })
+    .then(()=>{ el.value=""; })
+    .catch(e=>alert("新增失敗："+e.message));
+}
+function toggleTodo(id, done){
+  const { db, doc, updateDoc } = window.fb;
+  updateDoc(doc(db,"cp_todos",id), { done, doneAt: done ? Date.now() : null }).catch(e=>alert("更新失敗："+e.message));
+}
+function deleteTodo(id){
+  const { db, doc, deleteDoc } = window.fb;
+  deleteDoc(doc(db,"cp_todos",id)).catch(e=>alert("刪除失敗："+e.message));
+}
+
+/* ================= 首頁：月曆 ================= */
+function buildMonthCells(year, month){
+  const first = new Date(year, month, 1);
+  const startWeekday = first.getDay();
+  const numDays = new Date(year, month+1, 0).getDate();
+  const cells = [];
+  for (let i=0;i<startWeekday;i++) cells.push(null);
+  for (let d=1; d<=numDays; d++) cells.push(fmtYMD(new Date(year, month, d, 12, 0, 0)));
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+function dayCourses(dateStr){ return courses.filter(c => dateStr >= c.startDate && dateStr <= c.endDate); }
+
+function renderCalendarCard(){
+  const cells = buildMonthCells(viewYear, viewMonth);
+  const today = todayStr();
+  return `<div class="card">
+    <div class="cal-head">
+      <button class="cal-nav" onclick="prevMonth()">◀</button>
+      <b>${viewYear} 年 ${viewMonth+1} 月</b>
+      <button class="cal-nav" onclick="nextMonth()">▶</button>
+    </div>
+    <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
+    <div class="cal-grid" id="calGrid">
+      ${cells.map(dateStr=>{
+        if (!dateStr) return `<div class="cal-cell blank"></div>`;
+        const dcs = dayCourses(dateStr);
+        const shown = dcs.slice(0,2);
+        const more = dcs.length - shown.length;
+        const isToday = dateStr === today;
+        const dnum = Number(dateStr.slice(8,10));
+        return `<div class="cal-cell${isToday?' today':''}" onclick="openDay('${dateStr}')">
+          <div class="cal-daynum">${dnum}</div>
+          ${shown.map(c=>`<div class="cal-pill" style="background:${catColor(c.categoryId)}22;color:${catColor(c.categoryId)}">${esc(c.categoryName)}</div>`).join("")}
+          ${more>0 ? `<div class="cal-more">+${more}</div>` : ""}
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="muted" style="text-align:center;margin-top:10px">👆 點日期新增或查看課程・👈👉 左右滑動切換月份</div>
+  </div>`;
+}
+function prevMonth(){ viewMonth--; if (viewMonth<0){ viewMonth=11; viewYear--; } render(); }
+function nextMonth(){ viewMonth++; if (viewMonth>11){ viewMonth=0; viewYear++; } render(); }
+function bindCalendarSwipe(){
+  const el = document.getElementById("calGrid");
+  if (!el) return;
+  let sx = 0;
+  el.ontouchstart = e => { sx = e.touches[0].clientX; };
+  el.ontouchend = e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    if (dx > 50) prevMonth();
+    else if (dx < -50) nextMonth();
+  };
+}
+
+function renderHome(){
+  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，資料暫時無法讀取或儲存。</div>` : ""}
+    ${renderTodoCard()}
+    ${renderCalendarCard()}`;
+}
+
+/* ================= 彈窗：當天課程 / 新增課程 ================= */
+function openDay(dateStr){ modal = { type:"day", date:dateStr }; renderModalRoot(); }
+function closeModal(){ modal = null; courseDraft = null; renderModalRoot(); }
+function closeModalBg(e){ if (e.target === e.currentTarget) closeModal(); }
+
+function openAddCourse(dateStr){
+  const first = allCategories()[0];
+  courseDraft = { date: dateStr, categoryId: first.id, customName:"", days: first.days, reminderLeadDays: first.reminderLeadDays };
+  modal = { type:"addCourse" };
+  renderModalRoot();
+}
+function pickDraftCategory(id){
+  const cat = allCategories().find(c=>c.id===id);
+  courseDraft.categoryId = id;
+  if (id !== "other") { courseDraft.days = cat.days; courseDraft.reminderLeadDays = cat.reminderLeadDays; }
+  renderModalRoot();
+}
+function draftDateChange(v){ courseDraft.date = v; updateEndPreview(); }
+function draftDaysChange(v){ courseDraft.days = Math.max(1, Math.floor(Number(v)||1)); updateEndPreview(); }
+function updateEndPreview(){
+  const el = document.getElementById("endDatePreview");
+  if (el) el.textContent = addDaysStr(courseDraft.date, courseDraft.days-1);
+}
+function saveCourse(){
+  if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
+  const cat = allCategories().find(c=>c.id===courseDraft.categoryId);
+  const name = courseDraft.categoryId==="other" ? courseDraft.customName.trim() : cat.name;
+  if (!name) { alert("請輸入課程名稱"); return; }
+  const days = Math.max(1, Math.floor(Number(courseDraft.days)||1));
+  const reminderLeadDays = Math.max(0, Math.floor(Number(courseDraft.reminderLeadDays)||0));
+  const startDate = courseDraft.date;
+  const endDate = addDaysStr(startDate, days-1);
+  const { db, collection, addDoc } = window.fb;
+  addDoc(collection(db,"cp_courses"), {
+    categoryId: courseDraft.categoryId, categoryName: name,
+    startDate, endDate, days, reminderLeadDays, createdAt: Date.now()
+  }).then(()=>{ modal = { type:"day", date:startDate }; renderModalRoot(); })
+    .catch(e=>alert("新增失敗："+e.message));
+}
+function deleteCourse(id){
+  if (!confirm("確定要刪除這場課程嗎？")) return;
+  const { db, doc, deleteDoc } = window.fb;
+  deleteDoc(doc(db,"cp_courses",id)).catch(e=>alert("刪除失敗："+e.message));
+}
+
+function renderModalRoot(){
+  const root = document.getElementById("modalRoot");
+  if (!modal) { root.innerHTML = ""; return; }
+  if (modal.type === "day") root.innerHTML = renderDayModal();
+  else if (modal.type === "addCourse") root.innerHTML = renderAddCourseModal();
+}
+function renderDayModal(){
+  const dcs = dayCourses(modal.date);
+  return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-head"><b>${dateLabel(modal.date)}</b><button class="x" onclick="closeModal()">✕</button></div>
+    ${dcs.length ? dcs.map(c=>`<div class="course-row">
+        <span class="dot" style="background:${catColor(c.categoryId)}"></span>
+        <div class="ci"><div class="cn">${esc(c.categoryName)}</div>
+        <div class="cm">${c.startDate===c.endDate ? "當天課程" : c.startDate+" ～ "+c.endDate}・提前 ${c.reminderLeadDays} 天提醒</div></div>
+        <button class="btn btn-red btn-sm" onclick="deleteCourse('${c.id}')">刪除</button>
+      </div>`).join("") : `<div class="empty">這天還沒有安排課程</div>`}
+    <button class="btn btn-main" style="width:100%;margin-top:14px" onclick="openAddCourse('${modal.date}')">＋ 新增課程</button>
+  </div></div>`;
+}
+function renderAddCourseModal(){
+  const cats = allCategories();
+  const isOther = courseDraft.categoryId === "other";
+  return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-head"><b>新增課程</b><button class="x" onclick="closeModal()">✕</button></div>
+    <div class="field">
+      <label>課程類別</label>
+      <select onchange="pickDraftCategory(this.value)">
+        ${cats.map(c=>`<option value="${c.id}" ${c.id===courseDraft.categoryId?"selected":""}>${esc(c.name)}</option>`).join("")}
+      </select>
+    </div>
+    ${isOther ? `<div class="field"><label>課程名稱</label><input value="${esc(courseDraft.customName)}" oninput="courseDraft.customName=this.value" placeholder="請輸入課程名稱"></div>` : ""}
+    <div class="field-row">
+      <div class="field"><label>開始日期</label><input type="date" value="${courseDraft.date}" oninput="draftDateChange(this.value)"></div>
+      <div class="field"><label>天數</label><input type="number" min="1" value="${courseDraft.days}" oninput="draftDaysChange(this.value)"></div>
+    </div>
+    <div class="muted" style="margin:-6px 0 12px">結束日期：<b id="endDatePreview">${addDaysStr(courseDraft.date, courseDraft.days-1)}</b></div>
+    <div class="field"><label>提前幾天提醒開課</label><input type="number" min="0" value="${courseDraft.reminderLeadDays}" oninput="courseDraft.reminderLeadDays=Math.max(0,Math.floor(Number(this.value)||0))"></div>
+    <button class="btn btn-main" style="width:100%" onclick="saveCourse()">儲存課程</button>
+  </div></div>`;
+}
+
+/* ================= 後台：課程類別管理 ================= */
+function addCatRow(){ catDraft.push({ id:"c"+Date.now(), name:"", days:1, reminderLeadDays:3 }); render(); }
+function deleteCatRow(idx){
+  if (!confirm("確定要刪除這個課程類別嗎？（已建立的課程紀錄不受影響）")) return;
+  catDraft.splice(idx,1); render();
+}
+function updateCatDraft(idx, field, value){
+  if (field==="name") catDraft[idx].name = value;
+  else catDraft[idx][field] = Math.max(field==="reminderLeadDays"?0:1, Math.floor(Number(value)||(field==="reminderLeadDays"?0:1)));
+}
+function saveCategories(){
+  const cleaned = catDraft.filter(c=>c.name && c.name.trim()).map(c=>({ id:c.id, name:c.name.trim(), days:c.days, reminderLeadDays:c.reminderLeadDays }));
+  if (!cleaned.length) { alert("至少要保留一個課程類別"); return; }
+  const { db, doc, setDoc } = window.fb;
+  setDoc(doc(db,"cp_settings","app"), { ...settings, categories: cleaned }, { merge:true })
+    .then(()=>alert("課程類別已儲存"))
+    .catch(e=>alert("儲存失敗："+e.message));
+}
+function savePin(){
+  const v = (document.getElementById("setPin").value || "").trim() || DEFAULT_PIN;
+  const { db, doc, setDoc } = window.fb;
+  setDoc(doc(db,"cp_settings","app"), { ...settings, pin:v }, { merge:true })
+    .then(()=>alert("密碼已儲存"))
+    .catch(e=>alert("儲存失敗："+e.message));
+}
+
+function renderSettings(){
+  if (!catDraft) catDraft = JSON.parse(JSON.stringify(settings.categories));
+  return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，暫時無法儲存設定。</div>` : ""}
+    <div class="card">
+      <h3 class="sec">🏷️ 課程類別管理</h3>
+      <div class="cat-head-row"><div>名稱</div><div>天數</div><div>提醒</div><div></div></div>
+      ${catDraft.map((c,idx)=>`<div class="cat-row">
+        <input value="${esc(c.name)}" placeholder="類別名稱" oninput="updateCatDraft(${idx},'name',this.value)">
+        <input type="number" min="1" value="${c.days}" oninput="updateCatDraft(${idx},'days',this.value)">
+        <input type="number" min="0" value="${c.reminderLeadDays}" oninput="updateCatDraft(${idx},'reminderLeadDays',this.value)">
+        <button class="del" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer" onclick="deleteCatRow(${idx})">✕</button>
+      </div>`).join("")}
+      <button class="btn btn-ghost btn-sm" onclick="addCatRow()">＋ 新增類別</button>
+      <div style="margin-top:12px"><button class="btn btn-main" style="width:100%" onclick="saveCategories()">儲存課程類別</button></div>
+      <div class="muted" style="margin-top:8px">「其他（手動輸入）」為系統固定選項，新增課程時可自行輸入名稱，不需在此設定。</div>
+    </div>
+    <div class="card">
+      <h3 class="sec">🔑 共用密碼</h3>
+      <div class="field"><input id="setPin" value="${esc(settings.pin||DEFAULT_PIN)}"></div>
+      <button class="btn btn-main btn-sm" onclick="savePin()">儲存密碼</button>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
