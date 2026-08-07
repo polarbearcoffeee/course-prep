@@ -190,7 +190,8 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .acct-row .del:hover{ background:var(--red-bg); }
 .acct-row .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .acct-head-row{ display:grid; grid-template-columns:1fr 1fr 88px 40px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
-.status-tag{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; flex-shrink:0; white-space:nowrap; }
+.status-tag{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; flex-shrink:0; white-space:nowrap; display:inline-flex; align-items:center; gap:3px; }
+.status-tag .ic{ width:11px; height:11px; }
 .status-done{ background:var(--ok-bg); color:var(--ok); }
 .status-pending{ background:var(--navy-soft); color:var(--navy); }
 
@@ -763,13 +764,10 @@ function renderDayModal(){
       </div>`).join("") : `<div class="empty">這天還沒有安排課程</div>`}
     <button class="btn btn-main" style="width:100%;margin-top:14px" onclick="openAddCourse('${modal.date}')">＋ 新增課程</button>
     ${dayT.length ? `<div class="muted" style="margin:16px 0 6px">當天的指派待辦</div>${dayT.map(t=>{
-        const mine = currentAccount && t.assignedTo === currentAccount.id;
-        const exiting = exitingTodoIds.has(t.id); const deleting = deletingTodoIds.has(t.id);
-        const cls = exiting?'todo-exit':(deleting?'todo-delete-exit':'');
+        const deleting = deletingTodoIds.has(t.id);
+        const cls = deleting?'todo-delete-exit':'';
         return `<div class="todo-item${cls?' '+cls:''}">
-          ${mine
-            ? `<input type="checkbox" class="todo-checkbox" ${t.done||exiting?'checked':''} onchange="checkTodo('${t.id}')">`
-            : `<span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?'已完成':'未完成'}</span>`}
+          <span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?ICONS.check:ICONS.clock}${t.done?'已完成':'未完成'}</span>
           <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.text)}</span>
           ${high ? `<button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>` : ""}
         </div>`;
