@@ -36,27 +36,16 @@ try {
 
 <style>
 :root{
-  --brand:#d98a9c; --brand-d:#c06a80; --brand-strong:#22305c; --page-bg:#fdf1ea;
-  --navy:#22305c; --navy-d:#161f42; --navy-soft:#e7eaf3;
-  --ink:#332b3a; --line:#f0dde1; --hair:rgba(51,43,58,.10);
-  --ok:#4f8f5c; --ok-bg:#e8f3ea;
-  --red:#c0504a; --red-bg:#fbe9e7;
-  --card:#ffffff; --card-highlight:rgba(255,255,255,.7);
+  --brand:#e2809a; --brand-d:#c95f7d; --brand-strong:#22357a; --page-bg:#fdf1e8;
+  --navy:#22357a; --navy-d:#152252; --navy-soft:#e6eaf6;
+  --ink:#2c2a3a; --line:#f5dde3; --hair:rgba(44,42,58,.10);
+  --ok:#4f9c5f; --ok-bg:#e7f5ea;
+  --red:#d9564f; --red-bg:#fdeae8;
+  --card:#ffffff; --card-highlight:rgba(255,255,255,.8);
   --muted:#8d7a82;
-  --ring:rgba(217,138,156,.4);
+  --ring:rgba(226,128,154,.42);
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --brand:#e6a3b3; --brand-d:#f0bdc9; --brand-strong:#150f22; --page-bg:#1b1726;
-    --navy:#9fabdd; --navy-d:#c2cbec; --navy-soft:rgba(159,171,221,.14);
-    --ink:#f0e6e9; --line:#382f3f; --hair:rgba(240,230,233,.12);
-    --ok:#7fc98d; --ok-bg:rgba(127,201,141,.14);
-    --red:#e8918a; --red-bg:rgba(232,145,138,.14);
-    --card:#241f30; --card-highlight:rgba(255,255,255,.045);
-    --muted:#b6a3ac;
-    --ring:rgba(230,163,179,.5);
-  }
-}
+/* 品牌走明亮米白＋深藍＋玫瑰粉風格，維持固定不隨系統深色模式切換，確保視覺跟形象學院海報一致 */
 *{ box-sizing:border-box; margin:0; padding:0; }
 body{ font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif; background:var(--page-bg); color:var(--ink); padding-bottom:60px; }
 h1,h3.sec,.cal-head b,.sheet-head b,.pin-box b{ font-family:"Songti TC","Noto Serif TC","PMingLiU",serif; }
@@ -254,7 +243,7 @@ const DEFAULT_CATEGORIES = [
 ];
 const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:3 };
 const DEFAULT_PIN = "1234";
-const CAT_COLORS = ["#22305c","#c06a80","#b8923f","#5b7f6e","#5b7fa6","#a35a48","#7a5c8f","#4a8f8a"];
+const CAT_COLORS = ["#22357a","#e2809a","#d4a53f","#4fa876","#4f8fc4","#e2765c","#9b6bb3","#3fa39a"];
 const WEEKDAYS = ["日","一","二","三","四","五","六"];
 
 /* ================= 共用狀態 ================= */
