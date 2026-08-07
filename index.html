@@ -741,31 +741,34 @@ function closeModalBg(e){ if (e.target === e.currentTarget) closeModal(); }
 
 function openAddCourse(dateStr){
   const first = allCategories()[0];
-  courseDraft = { date: dateStr, categoryId: first.id, customName:"", days: first.days, reminderLeadDays: first.reminderLeadDays };
+  courseDraft = { date: dateStr, categoryId: first.id, customName:"", endDate: addDaysStr(dateStr, first.days-1), reminderLeadDays: first.reminderLeadDays };
   modal = { type:"addCourse" };
   renderModalRoot();
 }
 function pickDraftCategory(id){
   const cat = allCategories().find(c=>c.id===id);
   courseDraft.categoryId = id;
-  if (id !== "other") { courseDraft.days = cat.days; courseDraft.reminderLeadDays = cat.reminderLeadDays; }
+  if (id !== "other") { courseDraft.endDate = addDaysStr(courseDraft.date, cat.days-1); courseDraft.reminderLeadDays = cat.reminderLeadDays; }
   renderModalRoot();
 }
-function draftDateChange(v){ courseDraft.date = v; updateEndPreview(); }
-function draftDaysChange(v){ courseDraft.days = Math.max(1, Math.floor(Number(v)||1)); updateEndPreview(); }
-function updateEndPreview(){
-  const el = document.getElementById("endDatePreview");
-  if (el) el.textContent = addDaysStr(courseDraft.date, courseDraft.days-1);
+function draftStartChange(v){
+  courseDraft.date = v;
+  if (courseDraft.endDate < v) courseDraft.endDate = v;
+  renderModalRoot();
+}
+function draftEndChange(v){
+  courseDraft.endDate = v < courseDraft.date ? courseDraft.date : v;
+  renderModalRoot();
 }
 async function saveCourse(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
   const cat = allCategories().find(c=>c.id===courseDraft.categoryId);
   const name = courseDraft.categoryId==="other" ? courseDraft.customName.trim() : cat.name;
   if (!name) { alert("請輸入課程名稱"); return; }
-  const days = Math.max(1, Math.floor(Number(courseDraft.days)||1));
-  const reminderLeadDays = Math.max(0, Math.floor(Number(courseDraft.reminderLeadDays)||0));
   const startDate = courseDraft.date;
-  const endDate = addDaysStr(startDate, days-1);
+  const endDate = courseDraft.endDate < startDate ? startDate : courseDraft.endDate;
+  const days = diffDaysStr(startDate, endDate) + 1;
+  const reminderLeadDays = Math.max(0, Math.floor(Number(courseDraft.reminderLeadDays)||0));
   busy.courseSave = true; renderModalRoot();
   const { db, collection, addDoc } = window.fb;
   try {
@@ -828,10 +831,10 @@ function renderAddCourseModal(){
     </div>
     ${isOther ? `<div class="field"><label>課程名稱</label><input value="${esc(courseDraft.customName)}" oninput="courseDraft.customName=this.value" placeholder="請輸入課程名稱"></div>` : ""}
     <div class="field-row">
-      <div class="field"><label>開始日期</label><input type="date" value="${courseDraft.date}" oninput="draftDateChange(this.value)"></div>
-      <div class="field"><label>天數</label><input type="number" min="1" value="${courseDraft.days}" oninput="draftDaysChange(this.value)"></div>
+      <div class="field"><label>開始日期</label><input type="date" value="${courseDraft.date}" onchange="draftStartChange(this.value)"></div>
+      <div class="field"><label>結束日期</label><input type="date" value="${courseDraft.endDate}" min="${courseDraft.date}" onchange="draftEndChange(this.value)"></div>
     </div>
-    <div class="muted" style="margin:-6px 0 12px">結束日期：<b id="endDatePreview">${addDaysStr(courseDraft.date, courseDraft.days-1)}</b></div>
+    <div class="muted" style="margin:-6px 0 12px">共 <b>${diffDaysStr(courseDraft.date, courseDraft.endDate)+1}</b> 天</div>
     <div class="field"><label>提前幾天提醒開課</label><input type="number" min="0" value="${courseDraft.reminderLeadDays}" oninput="courseDraft.reminderLeadDays=Math.max(0,Math.floor(Number(this.value)||0))"></div>
     <button class="btn btn-main" style="width:100%" ${busy.courseSave?"disabled":""} onclick="saveCourse()">${busy.courseSave?"儲存中…":"儲存課程"}</button>
   </div></div>`;
