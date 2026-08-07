@@ -190,6 +190,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .pick-cell.blank{ visibility:hidden; cursor:default; }
 .pick-cell.today{ border-color:var(--navy); color:var(--navy); }
 .pick-cell.selected{ background:var(--brand); color:#fff; border-color:var(--brand); }
+.pick-cell.in-range{ background:var(--navy-soft); border-color:var(--navy-soft); }
 
 /* 後台類別／帳號管理 */
 .cat-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; align-items:center; margin-bottom:8px; }
@@ -332,8 +333,10 @@ let exitingTodoIds = new Set();   // 打勾完成，播放招牌動畫中
 let deletingTodoIds = new Set();  // 按下刪除，播放退場動畫中
 let deletingCourseIds = new Set();
 let toast = null;           // {message, timerId, onCommit, onRestore}
-let assignDraft = { date: null, time: "" }; // 指派待辦表單的日期／時間（改用自訂日曆選取，不用打字）
+let assignDraft = { date: null, endDate: null, time: "" }; // 指派待辦表單的日期範圍／時間（改用自訂日曆選取，不用打字）
 let pickerYear, pickerMonth; // 日期選取小月曆目前顯示的年月
+let pickerTarget = "start"; // 目前小月曆是在選「開始」還是「結束」日期
+function shortDateLabel(s){ const d = parseYMD(s); return `${d.getMonth()+1}/${d.getDate()}（${WEEKDAYS[d.getDay()]}）`; }
 
 let currentAccount = null;  // {id, name, role}
 try { const saved = JSON.parse(sessionStorage.getItem("cp_account")||"null"); if (saved && saved.id) currentAccount = saved; } catch(e){}
@@ -544,7 +547,7 @@ function myTodos(){
   if (!currentAccount) return [];
   return todos.filter(t => t.assignedTo === currentAccount.id);
 }
-function dayTodos(dateStr){ return todos.filter(t => t.date === dateStr); }
+function dayTodos(dateStr){ return todos.filter(t => dateStr >= t.date && dateStr <= (t.endDate||t.date)); }
 
 function renderTodoCard(){
   const auto = autoTodoItems();
@@ -562,8 +565,10 @@ function renderTodoCard(){
         const exiting = exitingTodoIds.has(t.id);
         const deleting = deletingTodoIds.has(t.id);
         const cls = exiting ? "todo-exit" : (deleting ? "todo-delete-exit" : "");
+        const effEnd = t.endDate || t.date;
+        const isSingleToday = t.date === today && effEnd === today;
         const prefixBits = [];
-        if (t.date && t.date !== today) prefixBits.push(t.date.slice(5));
+        if (!isSingleToday) prefixBits.push(t.date===effEnd ? t.date.slice(5) : `${t.date.slice(5)}~${effEnd.slice(5)}`);
         if (t.time) prefixBits.push(t.time);
         const datePrefix = prefixBits.length ? `<span class="muted" style="margin-right:5px">${prefixBits.join(" ")}</span>` : "";
         return `<div class="todo-item${cls?' '+cls:''}">
@@ -575,16 +580,20 @@ function renderTodoCard(){
     ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉${nxt ? `<div class="muted" style="margin-top:6px">下一堂課：${nxt.startDate}．${esc(nxt.categoryName)}</div>` : ""}</div>` : ""}
     ${high ? (()=>{
         if (!assignDraft.date) assignDraft.date = today;
+        if (!assignDraft.endDate) assignDraft.endDate = assignDraft.date;
         return `<div class="assign-form">
       <div class="field"><label>指派給</label>
         <select id="assignPerson">${accountList().map(a=>`<option value="${a.id}" ${currentAccount && a.id===currentAccount.id?"selected":""}>${esc(a.name)}</option>`).join("")}</select>
       </div>
       <div class="field-row">
-        <div class="field"><label>日期</label>
-          <button type="button" class="date-pick-btn" onclick="openAssignDatePicker()"><span>${dateLabel(assignDraft.date)}</span>${ICONS.calendar}</button>
+        <div class="field"><label>開始日期</label>
+          <button type="button" class="date-pick-btn" onclick="openAssignDatePicker('start')"><span>${shortDateLabel(assignDraft.date)}</span>${ICONS.calendar}</button>
         </div>
-        <div class="field" style="max-width:120px"><label>時間（選填）</label><input type="time" value="${esc(assignDraft.time)}" oninput="assignDraft.time=this.value"></div>
+        <div class="field"><label>結束日期</label>
+          <button type="button" class="date-pick-btn" onclick="openAssignDatePicker('end')"><span>${shortDateLabel(assignDraft.endDate)}</span>${ICONS.calendar}</button>
+        </div>
       </div>
+      <div class="field" style="max-width:160px"><label>時間（選填）</label><input type="time" value="${esc(assignDraft.time)}" oninput="assignDraft.time=this.value"></div>
       <div class="todo-add">
         <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="輸入待辦內容（例如：訂餐盒）" onkeydown="if(event.key==='Enter')assignTodo()">
         <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="assignTodo()">${busy.todoAdd?"處理中":"指派"}</button>
@@ -602,11 +611,12 @@ async function assignTodo(){
   if (!text) return;
   const assignedTo = personEl.value;
   const date = assignDraft.date || todayStr();
+  const endDate = (assignDraft.endDate && assignDraft.endDate >= date) ? assignDraft.endDate : date;
   const time = assignDraft.time || "";
   busy.todoAdd = true; render();
   const { db, collection, addDoc } = window.fb;
   try {
-    await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, time, done:false, createdAt:Date.now() });
+    await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, endDate, time, done:false, createdAt:Date.now() });
   } catch(e){ alert("指派失敗："+e.message); }
   busy.todoAdd = false; render();
   const again = document.getElementById("newTodoInput");
@@ -821,8 +831,9 @@ function renderModalRoot(){
 }
 
 /* ================= 指派待辦：像行事曆一樣點選日期，不用打字 ================= */
-function openAssignDatePicker(){
-  const base = parseYMD(assignDraft.date || todayStr());
+function openAssignDatePicker(target){
+  pickerTarget = target || "start";
+  const base = parseYMD(pickerTarget==="end" ? (assignDraft.endDate||assignDraft.date||todayStr()) : (assignDraft.date || todayStr()));
   pickerYear = base.getFullYear();
   pickerMonth = base.getMonth();
   modal = { type:"pickDate" };
@@ -831,15 +842,28 @@ function openAssignDatePicker(){
 function pickerPrevMonth(){ pickerMonth--; if (pickerMonth<0){ pickerMonth=11; pickerYear--; } renderModalRoot(); }
 function pickerNextMonth(){ pickerMonth++; if (pickerMonth>11){ pickerMonth=0; pickerYear++; } renderModalRoot(); }
 function pickAssignDate(dateStr){
-  assignDraft.date = dateStr;
-  closeModal();
-  render();
+  if (pickerTarget === "end") {
+    assignDraft.endDate = dateStr < assignDraft.date ? assignDraft.date : dateStr;
+  } else {
+    assignDraft.date = dateStr;
+    if (!assignDraft.endDate || assignDraft.endDate < dateStr) assignDraft.endDate = dateStr;
+  }
+  // 不能用 closeModal()＋render() 兩個都各自重繪彈窗，會互相打架閃兩下；
+  // 這裡自己播退場動畫，動畫播完才「一次性」把 modal 清空並整頁重繪
+  const ov = document.querySelector("#modalRoot .overlay");
+  if (ov) {
+    ov.classList.add("overlay-exit");
+    const sheet = ov.querySelector(".sheet");
+    if (sheet) sheet.classList.add("sheet-exit");
+  }
+  setTimeout(()=>{ modal = null; render(); }, 140);
 }
 function renderDatePickerModal(){
   const cells = buildMonthCells(pickerYear, pickerMonth);
   const todayS = todayStr();
+  const rangeStart = assignDraft.date, rangeEnd = assignDraft.endDate || assignDraft.date;
   return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-head"><b>選擇日期</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
+    <div class="sheet-head"><b>選擇${pickerTarget==='end'?'結束':'開始'}日期</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
     <div class="cal-head">
       <button class="cal-nav" onclick="pickerPrevMonth()" aria-label="上個月">${ICONS.chevronLeft}</button>
       <b>${pickerYear} 年 ${pickerMonth+1} 月</b>
@@ -851,8 +875,9 @@ function renderDatePickerModal(){
         if (!dateStr) return `<div class="pick-cell blank"></div>`;
         const dnum = Number(dateStr.slice(8,10));
         const isToday = dateStr === todayS;
-        const isSelected = dateStr === assignDraft.date;
-        return `<button type="button" class="pick-cell${isToday?' today':''}${isSelected?' selected':''}" onclick="pickAssignDate('${dateStr}')">${dnum}</button>`;
+        const inRange = rangeStart && rangeEnd && dateStr >= rangeStart && dateStr <= rangeEnd;
+        const isBoundary = dateStr === rangeStart || dateStr === rangeEnd;
+        return `<button type="button" class="pick-cell${isToday?' today':''}${inRange&&!isBoundary?' in-range':''}${isBoundary?' selected':''}" onclick="pickAssignDate('${dateStr}')">${dnum}</button>`;
       }).join("")}
     </div>
   </div></div>`;
@@ -949,7 +974,7 @@ function renderAssignOverviewRows(){
   });
   if (!rows.length) return `<div class="empty">還沒有指派任何待辦</div>`;
   return rows.map(t=>`<div class="todo-item" style="max-height:none">
-    <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.date||"")}${t.time?` ${esc(t.time)}`:""}・${esc(t.text)}</span>
+    <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.date===(t.endDate||t.date) ? t.date : `${t.date} ~ ${t.endDate}`)}${t.time?` ${esc(t.time)}`:""}・${esc(t.text)}</span>
     <span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?"已完成":"未完成"}</span>
   </div>`).join("");
 }
