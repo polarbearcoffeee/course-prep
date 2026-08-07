@@ -177,6 +177,19 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .field input:focus,.field select:focus{ outline:none; border-color:var(--brand); }
 .field-row{ display:flex; gap:10px; }
 .field-row .field{ flex:1; }
+.date-pick-btn{ width:100%; padding:10px; border:1.5px solid var(--line); border-radius:10px; font-size:14px; font-weight:700; background:var(--card); color:var(--ink); text-align:left; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; transition:border-color .15s ease, background-color .15s ease; }
+.date-pick-btn:hover{ border-color:var(--brand); background:var(--hair); }
+.date-pick-btn:active{ transform:scale(.98); }
+.date-pick-btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.date-pick-btn .ic{ color:var(--navy); flex-shrink:0; }
+.pick-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:6px; }
+.pick-cell{ min-height:38px; border:1px solid var(--line); border-radius:9px; background:var(--card); font-size:13px; font-weight:700; color:var(--ink); cursor:pointer; font-variant-numeric:tabular-nums; transition:background-color .15s ease, border-color .15s ease, transform .1s ease; }
+.pick-cell:hover{ background:var(--hair); border-color:var(--brand); }
+.pick-cell:active{ transform:scale(.94); }
+.pick-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.pick-cell.blank{ visibility:hidden; cursor:default; }
+.pick-cell.today{ border-color:var(--navy); color:var(--navy); }
+.pick-cell.selected{ background:var(--brand); color:#fff; border-color:var(--brand); }
 
 /* 後台類別／帳號管理 */
 .cat-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; align-items:center; margin-bottom:8px; }
@@ -319,6 +332,8 @@ let exitingTodoIds = new Set();   // 打勾完成，播放招牌動畫中
 let deletingTodoIds = new Set();  // 按下刪除，播放退場動畫中
 let deletingCourseIds = new Set();
 let toast = null;           // {message, timerId, onCommit, onRestore}
+let assignDraft = { date: null, time: "" }; // 指派待辦表單的日期／時間（改用自訂日曆選取，不用打字）
+let pickerYear, pickerMonth; // 日期選取小月曆目前顯示的年月
 
 let currentAccount = null;  // {id, name, role}
 try { const saved = JSON.parse(sessionStorage.getItem("cp_account")||"null"); if (saved && saved.id) currentAccount = saved; } catch(e){}
@@ -547,7 +562,10 @@ function renderTodoCard(){
         const exiting = exitingTodoIds.has(t.id);
         const deleting = deletingTodoIds.has(t.id);
         const cls = exiting ? "todo-exit" : (deleting ? "todo-delete-exit" : "");
-        const datePrefix = t.date && t.date !== today ? `<span class="muted" style="margin-right:5px">${t.date.slice(5)}</span>` : "";
+        const prefixBits = [];
+        if (t.date && t.date !== today) prefixBits.push(t.date.slice(5));
+        if (t.time) prefixBits.push(t.time);
+        const datePrefix = prefixBits.length ? `<span class="muted" style="margin-right:5px">${prefixBits.join(" ")}</span>` : "";
         return `<div class="todo-item${cls?' '+cls:''}">
         <input type="checkbox" class="todo-checkbox" ${t.done||exiting?"checked":""} onchange="checkTodo('${t.id}')">
         <span class="t">${datePrefix}${esc(t.text)}</span>
@@ -555,34 +573,40 @@ function renderTodoCard(){
       </div>`;
       }).join("") : ""}
     ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉${nxt ? `<div class="muted" style="margin-top:6px">下一堂課：${nxt.startDate}．${esc(nxt.categoryName)}</div>` : ""}</div>` : ""}
-    ${high ? `<div class="assign-form">
+    ${high ? (()=>{
+        if (!assignDraft.date) assignDraft.date = today;
+        return `<div class="assign-form">
+      <div class="field"><label>指派給</label>
+        <select id="assignPerson">${accountList().map(a=>`<option value="${a.id}" ${currentAccount && a.id===currentAccount.id?"selected":""}>${esc(a.name)}</option>`).join("")}</select>
+      </div>
       <div class="field-row">
-        <div class="field"><label>指派給</label>
-          <select id="assignPerson">${accountList().map(a=>`<option value="${a.id}" ${currentAccount && a.id===currentAccount.id?"selected":""}>${esc(a.name)}</option>`).join("")}</select>
+        <div class="field"><label>日期</label>
+          <button type="button" class="date-pick-btn" onclick="openAssignDatePicker()"><span>${dateLabel(assignDraft.date)}</span>${ICONS.calendar}</button>
         </div>
-        <div class="field" style="max-width:150px"><label>日期</label><input type="date" id="assignDate" value="${today}"></div>
+        <div class="field" style="max-width:120px"><label>時間（選填）</label><input type="time" value="${esc(assignDraft.time)}" oninput="assignDraft.time=this.value"></div>
       </div>
       <div class="todo-add">
         <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="輸入待辦內容（例如：訂餐盒）" onkeydown="if(event.key==='Enter')assignTodo()">
         <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="assignTodo()">${busy.todoAdd?"處理中":"指派"}</button>
       </div>
-    </div>` : ""}
+    </div>`;
+      })() : ""}
   </div>`;
 }
 
 async function assignTodo(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
   const personEl = document.getElementById("assignPerson");
-  const dateEl = document.getElementById("assignDate");
   const textEl = document.getElementById("newTodoInput");
   const text = textEl.value.trim();
   if (!text) return;
   const assignedTo = personEl.value;
-  const date = dateEl.value || todayStr();
+  const date = assignDraft.date || todayStr();
+  const time = assignDraft.time || "";
   busy.todoAdd = true; render();
   const { db, collection, addDoc } = window.fb;
   try {
-    await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, done:false, createdAt:Date.now() });
+    await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, time, done:false, createdAt:Date.now() });
   } catch(e){ alert("指派失敗："+e.message); }
   busy.todoAdd = false; render();
   const again = document.getElementById("newTodoInput");
@@ -793,6 +817,45 @@ function renderModalRoot(){
   if (!modal) { root.innerHTML = ""; return; }
   if (modal.type === "day") root.innerHTML = renderDayModal();
   else if (modal.type === "addCourse") root.innerHTML = renderAddCourseModal();
+  else if (modal.type === "pickDate") root.innerHTML = renderDatePickerModal();
+}
+
+/* ================= 指派待辦：像行事曆一樣點選日期，不用打字 ================= */
+function openAssignDatePicker(){
+  const base = parseYMD(assignDraft.date || todayStr());
+  pickerYear = base.getFullYear();
+  pickerMonth = base.getMonth();
+  modal = { type:"pickDate" };
+  renderModalRoot();
+}
+function pickerPrevMonth(){ pickerMonth--; if (pickerMonth<0){ pickerMonth=11; pickerYear--; } renderModalRoot(); }
+function pickerNextMonth(){ pickerMonth++; if (pickerMonth>11){ pickerMonth=0; pickerYear++; } renderModalRoot(); }
+function pickAssignDate(dateStr){
+  assignDraft.date = dateStr;
+  closeModal();
+  render();
+}
+function renderDatePickerModal(){
+  const cells = buildMonthCells(pickerYear, pickerMonth);
+  const todayS = todayStr();
+  return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-head"><b>選擇日期</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
+    <div class="cal-head">
+      <button class="cal-nav" onclick="pickerPrevMonth()" aria-label="上個月">${ICONS.chevronLeft}</button>
+      <b>${pickerYear} 年 ${pickerMonth+1} 月</b>
+      <button class="cal-nav" onclick="pickerNextMonth()" aria-label="下個月">${ICONS.chevronRight}</button>
+    </div>
+    <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
+    <div class="pick-grid">
+      ${cells.map(dateStr=>{
+        if (!dateStr) return `<div class="pick-cell blank"></div>`;
+        const dnum = Number(dateStr.slice(8,10));
+        const isToday = dateStr === todayS;
+        const isSelected = dateStr === assignDraft.date;
+        return `<button type="button" class="pick-cell${isToday?' today':''}${isSelected?' selected':''}" onclick="pickAssignDate('${dateStr}')">${dnum}</button>`;
+      }).join("")}
+    </div>
+  </div></div>`;
 }
 function renderDayModal(){
   const dcs = dayCourses(modal.date);
@@ -812,7 +875,7 @@ function renderDayModal(){
         const cls = deleting?'todo-delete-exit':'';
         return `<div class="todo-item${cls?' '+cls:''}">
           <span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?ICONS.check:ICONS.clock}${t.done?'已完成':'未完成'}</span>
-          <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.text)}</span>
+          <span class="t"><b>${esc(accountName(t.assignedTo))}</b>${t.time?`・${esc(t.time)}`:""}・${esc(t.text)}</span>
           ${high ? `<button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>` : ""}
         </div>`;
       }).join("")}` : ""}
@@ -886,7 +949,7 @@ function renderAssignOverviewRows(){
   });
   if (!rows.length) return `<div class="empty">還沒有指派任何待辦</div>`;
   return rows.map(t=>`<div class="todo-item" style="max-height:none">
-    <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.date||"")}・${esc(t.text)}</span>
+    <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.date||"")}${t.time?` ${esc(t.time)}`:""}・${esc(t.text)}</span>
     <span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?"已完成":"未完成"}</span>
   </div>`).join("");
 }
