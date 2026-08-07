@@ -126,7 +126,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .todo-add input:focus{ outline:none; border-color:var(--brand); }
 .todo-add input:disabled{ opacity:.6; }
 
-/* 月曆 */
+/* 月曆（Google 行事曆風格：跨天課程用一整條色塊延伸過去，色塊上直接顯示名稱） */
 .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .cal-head b{ font-size:15px; font-variant-numeric:tabular-nums; }
 .cal-nav{ background:var(--navy-soft); border:none; color:var(--navy); width:32px; height:32px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease, transform .12s ease; }
@@ -134,19 +134,24 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-nav:active{ transform:scale(.92); }
 .cal-nav:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
-.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; touch-action:pan-y; }
-.cal-cell{ position:relative; min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:var(--card); overflow:hidden; transition:background-color .16s ease, border-color .16s ease, transform .12s ease; }
-.cal-cell:hover{ background:var(--hair); border-color:var(--brand); }
-.cal-cell:active{ transform:scale(.96); }
-.cal-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
-.cal-cell.blank{ visibility:hidden; cursor:default; }
-.cal-cell.today{ border:2px solid var(--navy); background:var(--navy-soft); }
+.cal-body{ touch-action:pan-y; }
+.cal-week-row{ margin-bottom:5px; padding-bottom:5px; border-bottom:1px dotted var(--line); }
+.cal-week-row:last-child{ border-bottom:none; }
+.cal-daynum-row{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-day-cell{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:26px; border-radius:8px; cursor:pointer; transition:background-color .15s ease, transform .1s ease; }
+.cal-day-cell:hover{ background:var(--hair); }
+.cal-day-cell:active{ transform:scale(.94); }
+.cal-day-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.cal-day-cell.blank{ visibility:hidden; cursor:default; }
 .cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
-.cal-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
-.cal-pill{ font-size:9.5px; border-radius:5px; padding:1px 3px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
-.cal-more{ font-size:9px; color:var(--muted); margin-top:1px; }
-.cal-todo-dot{ position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--brand); transition:background-color .2s ease; }
+.cal-day-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:19px; height:19px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
+.cal-todo-dot{ width:5px; height:5px; border-radius:50%; background:var(--brand); margin-top:2px; transition:background-color .2s ease; }
 .cal-todo-dot.done{ background:var(--ok); }
+.cal-events-row{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px 4px; margin-top:3px; }
+.cal-event-bar{ font-size:10px; font-weight:700; color:#fff; padding:2px 6px; border-radius:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:filter .15s ease, transform .1s ease; line-height:1.5; }
+.cal-event-bar:hover{ filter:brightness(1.1); }
+.cal-event-bar:active{ transform:scale(.97); }
+.cal-event-bar:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 
 /* 彈窗 */
 .overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
@@ -296,7 +301,7 @@ const DEFAULT_CATEGORIES = [
 ];
 const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:3 };
 const DEFAULT_ACCOUNTS = [{ id:"admin", name:"管理者", password:"1234", role:"high" }];
-const CAT_COLORS = ["#22357a","#e2809a","#d4a53f","#4fa876","#4f8fc4","#e2765c","#9b6bb3","#3fa39a"];
+const CAT_COLORS = ["#22357a","#b8567a","#9c7a2a","#3a7a56","#35648f","#b8543c","#6f4a86","#2a7d75"];
 const WEEKDAYS = ["日","一","二","三","四","五","六"];
 
 /* ================= 共用狀態 ================= */
@@ -613,9 +618,40 @@ function buildMonthCells(year, month){
   return cells;
 }
 function dayCourses(dateStr){ return courses.filter(c => dateStr >= c.startDate && dateStr <= c.endDate); }
+function buildMonthWeeks(year, month){
+  const cells = buildMonthCells(year, month);
+  const weeks = [];
+  for (let i=0;i<cells.length;i+=7) weeks.push(cells.slice(i,i+7));
+  return weeks;
+}
+// 把一週 7 天裡所有課程排成一條條橫向色塊，重疊的課程自動分到不同層（跟 Google 行事曆一樣的排法）
+function weekEventLanes(week){
+  const items = [];
+  for (const c of courses){
+    let startCol = -1, endCol = -1;
+    for (let i=0;i<7;i++){
+      const d = week[i];
+      if (d && d >= c.startDate && d <= c.endDate){
+        if (startCol === -1) startCol = i;
+        endCol = i;
+      }
+    }
+    if (startCol !== -1) items.push({ course:c, startCol, endCol });
+  }
+  items.sort((a,b)=> (a.startCol-b.startCol) || (a.endCol-b.endCol));
+  const lanes = [];
+  const placed = [];
+  for (const it of items){
+    let laneIdx = lanes.findIndex(lane => lane.every(x => it.startCol > x.endCol || it.endCol < x.startCol));
+    if (laneIdx === -1){ laneIdx = lanes.length; lanes.push([]); }
+    lanes[laneIdx].push({ startCol:it.startCol, endCol:it.endCol });
+    placed.push({ ...it, lane: laneIdx });
+  }
+  return { placed, laneCount: lanes.length };
+}
 
 function renderCalendarCard(){
-  const cells = buildMonthCells(viewYear, viewMonth);
+  const weeks = buildMonthWeeks(viewYear, viewMonth);
   const today = todayStr();
   return `<div class="card" id="calRegion">
     <div class="cal-head">
@@ -624,21 +660,26 @@ function renderCalendarCard(){
       <button class="cal-nav" onclick="nextMonth()" aria-label="下個月">${ICONS.chevronRight}</button>
     </div>
     <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
-    <div class="cal-grid" id="calGrid">
-      ${cells.map(dateStr=>{
-        if (!dateStr) return `<div class="cal-cell blank"></div>`;
-        const dcs = dayCourses(dateStr);
-        const shown = dcs.slice(0,2);
-        const more = dcs.length - shown.length;
-        const isToday = dateStr === today;
-        const dnum = Number(dateStr.slice(8,10));
-        const dayT = dayTodos(dateStr);
-        const hasPending = dayT.some(t=>!t.done);
-        return `<div class="cal-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
-          <div class="cal-daynum">${dnum}</div>
-          ${shown.map(c=>`<div class="cal-pill" style="background:${catColor(c.categoryId)}22;color:${catColor(c.categoryId)}">${esc(c.categoryName)}</div>`).join("")}
-          ${more>0 ? `<div class="cal-more">+${more}</div>` : ""}
-          ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
+    <div class="cal-body" id="calGrid">
+      ${weeks.map(week=>{
+        const { placed, laneCount } = weekEventLanes(week);
+        return `<div class="cal-week-row">
+          <div class="cal-daynum-row">
+            ${week.map(dateStr=>{
+              if (!dateStr) return `<div class="cal-day-cell blank"></div>`;
+              const isToday = dateStr === today;
+              const dnum = Number(dateStr.slice(8,10));
+              const dayT = dayTodos(dateStr);
+              const hasPending = dayT.some(t=>!t.done);
+              return `<div class="cal-day-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
+                <span class="cal-daynum">${dnum}</span>
+                ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
+              </div>`;
+            }).join("")}
+          </div>
+          ${laneCount ? `<div class="cal-events-row" style="grid-auto-rows:16px">
+            ${placed.map(p=>`<div class="cal-event-bar" style="grid-column:${p.startCol+1} / ${p.endCol+2}; grid-row:${p.lane+1}; background:${catColor(p.course.categoryId)}" tabindex="0" role="button" onclick="openDay('${p.course.startDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${p.course.startDate}')}" title="${esc(p.course.categoryName)}">${esc(p.course.categoryName)}</div>`).join("")}
+          </div>` : ""}
         </div>`;
       }).join("")}
     </div>
