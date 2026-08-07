@@ -52,6 +52,10 @@ h1,h3.sec,.cal-head b,.sheet-head b,.pin-box b{ font-family:"Songti TC","Noto Se
 header{ background:var(--brand-strong); color:#fff; padding:18px 16px 14px; text-align:center; position:relative; border-bottom:3px solid var(--brand); }
 header h1{ font-size:19px; letter-spacing:1px; font-weight:700; }
 header .sub{ font-size:12px; opacity:.85; margin-top:4px; }
+.brand-line{ display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:7px; opacity:.85; }
+.brand-mark{ display:inline-flex; flex-shrink:0; }
+.brand-word{ font-family:"Songti TC","Noto Serif TC","PMingLiU",serif; font-style:italic; font-size:12.5px; letter-spacing:.4px; }
+.brand-word b{ font-style:normal; font-weight:700; margin-left:3px; letter-spacing:1px; }
 .brand-badge{ display:inline-flex; vertical-align:-6px; margin-right:2px; opacity:.95; }
 header .gear{ position:absolute; right:14px; top:14px; background:rgba(255,255,255,.16); border:none; color:#fff; width:38px; height:38px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
 header .gear:hover{ background:rgba(255,255,255,.28); }
@@ -88,7 +92,7 @@ h3.sec{ color:var(--navy); font-size:15px; margin-bottom:10px; display:flex; ali
 .btn:disabled{ opacity:.5; cursor:default; transform:none !important; }
 .btn:focus-visible,input:focus-visible,select:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 
-/* 今日代辦事項 */
+/* 我的待辦事項 */
 .todo-item{ display:flex; align-items:center; gap:9px; padding:9px 2px; border-bottom:1px dotted var(--line); font-size:14px; max-height:70px; overflow:hidden; }
 .todo-item:last-child{ border-bottom:none; }
 input[type=checkbox].todo-checkbox{ appearance:none; -webkit-appearance:none; width:20px; height:20px; border:1.6px solid var(--line); border-radius:6px; flex-shrink:0; cursor:pointer; position:relative; transition:background-color .15s ease, border-color .15s ease; }
@@ -116,6 +120,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
   0%{ opacity:1; transform:translateX(0); max-height:70px; }
   100%{ opacity:0; transform:translateX(18px); max-height:0; padding-top:0; padding-bottom:0; margin:0; border-color:transparent; }
 }
+.assign-form{ margin-top:12px; padding-top:12px; border-top:1px dotted var(--line); }
 .todo-add{ display:flex; gap:8px; margin-top:10px; }
 .todo-add input{ flex:1; padding:9px 10px; border:1.5px solid var(--line); border-radius:10px; font-size:14px; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
 .todo-add input:focus{ outline:none; border-color:var(--brand); }
@@ -130,7 +135,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-nav:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
 .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; touch-action:pan-y; }
-.cal-cell{ min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:var(--card); overflow:hidden; transition:background-color .16s ease, border-color .16s ease, transform .12s ease; }
+.cal-cell{ position:relative; min-height:60px; border:1px solid var(--line); border-radius:9px; padding:3px; cursor:pointer; background:var(--card); overflow:hidden; transition:background-color .16s ease, border-color .16s ease, transform .12s ease; }
 .cal-cell:hover{ background:var(--hair); border-color:var(--brand); }
 .cal-cell:active{ transform:scale(.96); }
 .cal-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
@@ -140,6 +145,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
 .cal-pill{ font-size:9.5px; border-radius:5px; padding:1px 3px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
 .cal-more{ font-size:9px; color:var(--muted); margin-top:1px; }
+.cal-todo-dot{ position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--brand); }
 
 /* 彈窗 */
 .overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
@@ -166,7 +172,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .field-row{ display:flex; gap:10px; }
 .field-row .field{ flex:1; }
 
-/* 後台類別管理 */
+/* 後台類別／帳號管理 */
 .cat-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; align-items:center; margin-bottom:8px; }
 .cat-row input{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
 .cat-row input:focus{ outline:none; border-color:var(--brand); }
@@ -176,8 +182,18 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cat-head-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
 .cat-row-removed{ display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:var(--hair); border-radius:8px; margin-bottom:8px; font-size:13px; color:var(--muted); animation:catRemoved .18s ease both; }
 @keyframes catRemoved{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
+.acct-row{ display:grid; grid-template-columns:1fr 1fr 88px 40px; gap:6px; align-items:center; margin-bottom:8px; }
+.acct-row input,.acct-row select{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
+.acct-row input:focus,.acct-row select:focus{ outline:none; border-color:var(--brand); }
+.acct-row .del{ background:none; border:none; color:var(--red); cursor:pointer; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
+.acct-row .del:hover{ background:var(--red-bg); }
+.acct-row .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.acct-head-row{ display:grid; grid-template-columns:1fr 1fr 88px 40px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.status-tag{ font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; flex-shrink:0; white-space:nowrap; }
+.status-done{ background:var(--ok-bg); color:var(--ok); }
+.status-pending{ background:var(--navy-soft); color:var(--navy); }
 
-/* 密碼閘 */
+/* 登入畫面 */
 .pin-box{ max-width:320px; margin:60px auto; text-align:center; }
 .pin-box input{ font-size:24px; text-align:center; letter-spacing:8px; width:200px; padding:10px; border:2px solid var(--brand); border-radius:12px; margin:14px 0; background:var(--card); color:var(--ink); }
 .pin-box input:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
@@ -185,6 +201,8 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 @keyframes pinShake{ 0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-8px); } 40%{ transform:translateX(7px); } 60%{ transform:translateX(-5px); } 80%{ transform:translateX(3px); } }
 .pin-err{ color:var(--red); font-size:13px; margin-top:10px; }
 .pin-hint{ margin-top:12px; font-size:12px; }
+.acct-pick-list{ display:flex; flex-direction:column; gap:8px; margin-top:16px; }
+.acct-pick-btn{ width:100%; }
 
 /* 提示條 toast */
 .toast{ position:fixed; left:50%; bottom:22px; transform:translateX(-50%); background:var(--ink); color:var(--page-bg); padding:11px 10px 11px 18px; border-radius:12px; display:flex; align-items:center; gap:14px; font-size:13.5px; box-shadow:0 10px 30px -8px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.15); z-index:200; animation:toastIn .2s cubic-bezier(.16,1,.3,1) both; max-width:calc(100% - 32px); }
@@ -199,6 +217,28 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .sk-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:12px; }
 .sk-cell{ height:52px; border-radius:8px; background:var(--line); }
 
+/* 畫面切換轉場（登入步驟／首頁↔後台） */
+@keyframes viewExit{ to{ opacity:0; transform:translateY(-8px) scale(.99); } }
+@keyframes viewEnter{ from{ opacity:0; transform:translateY(10px) scale(.99); } to{ opacity:1; transform:translateY(0) scale(1); } }
+#view.view-exit{ animation:viewExit .15s cubic-bezier(.4,0,1,1) forwards; }
+#view.view-enter{ animation:viewEnter .24s cubic-bezier(.16,1,.3,1) both; }
+
+/* 月曆左右滑動的頁面轉場 */
+@keyframes calExitL{ to{ opacity:0; transform:translateX(-18px); } }
+@keyframes calExitR{ to{ opacity:0; transform:translateX(18px); } }
+@keyframes calEnterL{ from{ opacity:0; transform:translateX(-18px); } to{ opacity:1; transform:translateX(0); } }
+@keyframes calEnterR{ from{ opacity:0; transform:translateX(18px); } to{ opacity:1; transform:translateX(0); } }
+#calRegion.cal-exit-l{ animation:calExitL .13s cubic-bezier(.4,0,1,1) forwards; }
+#calRegion.cal-exit-r{ animation:calExitR .13s cubic-bezier(.4,0,1,1) forwards; }
+#calRegion.cal-enter-l{ animation:calEnterL .22s cubic-bezier(.16,1,.3,1) both; }
+#calRegion.cal-enter-r{ animation:calEnterR .22s cubic-bezier(.16,1,.3,1) both; }
+
+/* 彈窗關閉退場 */
+.overlay.overlay-exit{ animation:overlayOut .14s ease-in forwards; }
+@keyframes overlayOut{ to{ opacity:0; } }
+.sheet.sheet-exit{ animation:sheetOut .14s cubic-bezier(.4,0,1,1) forwards; }
+@keyframes sheetOut{ to{ transform:translateY(22px); opacity:0; } }
+
 ::selection{ background:var(--brand); color:#fff; }
 
 @media (prefers-reduced-motion: reduce){
@@ -209,9 +249,17 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 <body>
 
 <header>
+  <div class="brand-line">
+    <svg class="brand-mark" viewBox="0 0 40 34" width="26" height="22" fill="none">
+      <path d="M20 10C16 2 4 4 4 14c0 8 9 14 16 18" stroke="#e2809a" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M20 10c4-8 16-6 16 4 0 8-9 14-16 18" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-word">E Dream <b>時尚形象學院</b></span>
+  </div>
   <h1><span class="brand-badge" id="brandBadge"></span> 課務事前準備系統</h1>
-  <div class="sub">形象顧問課務行事曆</div>
-  <button class="gear" id="gearBtn" style="display:none" onclick="toggleSettings()" aria-label="設定"></button>
+  <div class="sub" id="headerSub">形象顧問課務行事曆</div>
+  <button class="gear" id="gearBtn" style="display:none;right:60px" onclick="toggleSettings()" aria-label="設定"></button>
+  <button class="gear" id="logoutBtn" style="display:none" onclick="logout()" aria-label="登出"></button>
 </header>
 
 <main id="view"><div class="empty">載入中…</div></main>
@@ -231,10 +279,13 @@ const ICONS = {
   home: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 9.5 10 4l6.5 5.5"/><path d="M5.5 8.5V16h9V8.5"/></svg>',
   chevronLeft: '<svg class="ic" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg>',
   chevronRight: '<svg class="ic" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.5 13 10l-5.5 5.5"/></svg>',
-  x: '<svg class="ic" viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>'
+  x: '<svg class="ic" viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
+  people: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="2.6"/><path d="M2.5 16c.6-2.8 2.4-4.3 4.5-4.3s3.9 1.5 4.5 4.3"/><circle cx="14.5" cy="7.5" r="2.1"/><path d="M12.8 11.9c1.6.2 3 1.6 3.5 4.1"/></svg>',
+  clipboard: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4" width="11" height="13" rx="1.5"/><rect x="7" y="2.5" width="6" height="3" rx="1"/><path d="M7 9.5h6M7 12.5h6M7 15h3.5"/></svg>',
+  logout: '<svg class="ic" viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17H8"/><path d="M13 13.5 17 10l-4-3.5"/><path d="M17 10H8"/></svg>'
 };
 
-/* ================= 預設課程類別 ================= */
+/* ================= 預設課程類別／帳號 ================= */
 const DEFAULT_CATEGORIES = [
   { id:"jl", name:"形象精靈",         days:2, reminderLeadDays:7 },
   { id:"gn", name:"高能量形象密碼講座", days:1, reminderLeadDays:3 },
@@ -242,25 +293,30 @@ const DEFAULT_CATEGORIES = [
   { id:"cs", name:"色彩能量入門",      days:1, reminderLeadDays:3 }
 ];
 const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:3 };
-const DEFAULT_PIN = "1234";
+const DEFAULT_ACCOUNTS = [{ id:"admin", name:"管理者", password:"1234", role:"high" }];
 const CAT_COLORS = ["#22357a","#e2809a","#d4a53f","#4fa876","#4f8fc4","#e2765c","#9b6bb3","#3fa39a"];
 const WEEKDAYS = ["日","一","二","三","四","五","六"];
 
 /* ================= 共用狀態 ================= */
 let fbReady = false, fbFail = false;
-let appUnlocked = sessionStorage.getItem("cp_unlocked") === "1";
-let settings = { pin:"", categories: DEFAULT_CATEGORIES.slice() };
+let settings = { categories: DEFAULT_CATEGORIES.slice(), accounts: DEFAULT_ACCOUNTS.slice() };
 let courses = [];
 let todos = [];
 let page = "home";          // "home" | "settings"
 let catDraft = null;        // 後台編輯課程類別時的暫存陣列
+let acctDraft = null;       // 後台編輯帳號時的暫存陣列
 let modal = null;           // {type:"day",date} | {type:"addCourse"}
 let courseDraft = null;
-let busy = { todoAdd:false, courseSave:false, catSave:false, pinSave:false };
+let busy = { todoAdd:false, courseSave:false, catSave:false, acctSave:false };
 let exitingTodoIds = new Set();   // 打勾完成，播放招牌動畫中
 let deletingTodoIds = new Set();  // 按下刪除，播放退場動畫中
 let deletingCourseIds = new Set();
 let toast = null;           // {message, timerId, onCommit, onRestore}
+
+let currentAccount = null;  // {id, name, role}
+try { const saved = JSON.parse(sessionStorage.getItem("cp_account")||"null"); if (saved && saved.id) currentAccount = saved; } catch(e){}
+let loginStep = "pick";     // "pick" | "password"
+let loginPickedId = null;
 
 const today0 = new Date();
 let viewYear = today0.getFullYear();
@@ -276,6 +332,9 @@ function diffDaysStr(a, b){ return Math.round((parseYMD(b) - parseYMD(a)) / 8640
 function dateLabel(s){ const d = parseYMD(s); return `${d.getMonth()+1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`; }
 function allCategories(){ return settings.categories.concat([OTHER_CAT]); }
 function catColor(catId){ const list = allCategories(); const idx = list.findIndex(c=>c.id===catId); return CAT_COLORS[idx>=0 ? idx % CAT_COLORS.length : 0]; }
+function accountList(){ return (settings.accounts && settings.accounts.length) ? settings.accounts : DEFAULT_ACCOUNTS; }
+function accountName(id){ const a = accountList().find(x=>x.id===id); return a ? a.name : "（未知帳號）"; }
+function isHighAccount(){ return !!(currentAccount && currentAccount.role === "high"); }
 
 /* ================= 提示條（成功訊息／可復原的刪除） ================= */
 function commitPendingToast(){ if (toast){ clearTimeout(toast.timerId); toast.onCommit(); toast=null; } }
@@ -309,11 +368,11 @@ window.addEventListener("fb-ready", () => {
     if (snap.exists()) {
       const data = snap.data();
       settings = {
-        pin: data.pin || DEFAULT_PIN,
-        categories: Array.isArray(data.categories) && data.categories.length ? data.categories : DEFAULT_CATEGORIES.slice()
+        categories: Array.isArray(data.categories) && data.categories.length ? data.categories : DEFAULT_CATEGORIES.slice(),
+        accounts: Array.isArray(data.accounts) && data.accounts.length ? data.accounts : DEFAULT_ACCOUNTS.slice()
       };
     } else {
-      settings = { pin: DEFAULT_PIN, categories: DEFAULT_CATEGORIES.slice() };
+      settings = { categories: DEFAULT_CATEGORIES.slice(), accounts: DEFAULT_ACCOUNTS.slice() };
       setDoc(doc(db,"cp_settings","app"), settings).catch(()=>{});
     }
     render();
@@ -331,12 +390,38 @@ window.addEventListener("fb-ready", () => {
 });
 window.addEventListener("fb-error", () => { fbFail = true; render(); });
 
-/* ================= 密碼閘 ================= */
-function tryPin(){
+/* ================= 畫面轉場（每次切換都帶退場＋進場動畫，才有「體感」） ================= */
+function animatedRender(mutateFn, delay){
+  const v = document.getElementById("view");
+  if (!v || !v.firstChild) { mutateFn(); render(); return; }
+  v.classList.remove("view-enter");
+  void v.offsetWidth;
+  v.classList.add("view-exit");
+  setTimeout(()=>{
+    mutateFn();
+    render();
+    const v2 = document.getElementById("view");
+    v2.classList.remove("view-exit");
+    void v2.offsetWidth;
+    v2.classList.add("view-enter");
+  }, delay || 150);
+}
+
+/* ================= 登入畫面 ================= */
+function pickLoginAccount(id){ animatedRender(()=>{ loginPickedId = id; loginStep = "password"; }, 130); }
+function backToPick(){ animatedRender(()=>{ loginStep = "pick"; loginPickedId = null; }, 130); }
+function tryLogin(){
   const inputEl = document.getElementById("pinInput");
   const v = (inputEl.value || "").trim();
-  const pin = settings.pin || DEFAULT_PIN;
-  if (v === pin) { appUnlocked = true; sessionStorage.setItem("cp_unlocked","1"); render(); return; }
+  const acc = accountList().find(a=>a.id===loginPickedId);
+  if (acc && v === acc.password) {
+    animatedRender(()=>{
+      currentAccount = { id:acc.id, name:acc.name, role:acc.role };
+      sessionStorage.setItem("cp_account", JSON.stringify(currentAccount));
+      loginStep = "pick"; loginPickedId = null;
+    }, 160);
+    return;
+  }
   const box = document.getElementById("pinBox");
   if (box){ box.classList.remove("shake"); void box.offsetWidth; box.classList.add("shake"); }
   let errEl = document.getElementById("pinErr");
@@ -344,30 +429,56 @@ function tryPin(){
   if (errEl) errEl.textContent = "密碼錯誤，請再試一次";
   inputEl.value = ""; inputEl.focus();
 }
-function renderPinGate(){
+function logout(){ animatedRender(()=>{ sessionStorage.removeItem("cp_account"); currentAccount = null; page = "home"; }, 150); }
+function renderLoginGate(){
+  if (loginStep === "pick") {
+    return `<div class="pin-box card" id="pinBox">
+      <span class="icon-badge icon-badge-lg">${ICONS.people}</span>
+      <b>課務事前準備系統</b>
+      <div class="muted" style="margin-top:6px">請選擇你的名字</div>
+      <div class="acct-pick-list">
+        ${accountList().map(a=>`<button class="btn btn-ghost acct-pick-btn" onclick="pickLoginAccount('${a.id}')">${esc(a.name)}</button>`).join("")}
+      </div>
+    </div>`;
+  }
+  const acc = accountList().find(a=>a.id===loginPickedId);
   return `<div class="pin-box card" id="pinBox">
     <span class="icon-badge icon-badge-lg">${ICONS.lock}</span>
-    <b>課務事前準備系統</b>
-    <div class="muted" style="margin-top:6px">請輸入團隊共用密碼</div>
-    <div><input id="pinInput" type="password" inputmode="numeric" placeholder="••••" onkeydown="if(event.key==='Enter')tryPin()"></div>
-    <button class="btn btn-main" onclick="tryPin()">進入系統</button>
-    <div class="muted pin-hint">忘記密碼請找排課負責人</div>
+    <b>${esc(acc ? acc.name : "")}</b>
+    <div class="muted" style="margin-top:6px">請輸入你的密碼</div>
+    <div><input id="pinInput" type="password" placeholder="••••" onkeydown="if(event.key==='Enter')tryLogin()"></div>
+    <button class="btn btn-main" onclick="tryLogin()">登入</button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="backToPick()">← 選別人</button>
   </div>`;
 }
 
 /* ================= 畫面切換 ================= */
-function toggleSettings(){ page = (page==="home") ? "settings" : "home"; if(page==="settings") catDraft = JSON.parse(JSON.stringify(settings.categories)); render(); window.scrollTo(0,0); }
+function toggleSettings(){
+  if (!isHighAccount()) return;
+  animatedRender(()=>{
+    page = (page==="home") ? "settings" : "home";
+    if (page==="settings"){ catDraft = JSON.parse(JSON.stringify(settings.categories)); acctDraft = JSON.parse(JSON.stringify(settings.accounts)); }
+  }, 150);
+  window.scrollTo(0,0);
+}
 
 function render(){
   const v = document.getElementById("view");
   const gear = document.getElementById("gearBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
   const badge = document.getElementById("brandBadge");
+  const subEl = document.getElementById("headerSub");
   if (badge) badge.innerHTML = ICONS.calendar;
-  gear.style.display = appUnlocked ? "flex" : "none";
+  const loggedIn = !!currentAccount;
+  logoutBtn.style.display = loggedIn ? "flex" : "none";
+  logoutBtn.innerHTML = ICONS.logout;
+  gear.style.display = (loggedIn && isHighAccount()) ? "flex" : "none";
   gear.innerHTML = page==="settings" ? ICONS.home : ICONS.gear;
+  if (subEl) subEl.textContent = loggedIn ? `形象顧問課務行事曆．${currentAccount.name}（${isHighAccount()?"高權限":"低權限"}）` : "形象顧問課務行事曆";
 
-  if (!appUnlocked) { v.innerHTML = renderPinGate(); renderModalRoot(); return; }
+  if (!loggedIn) { v.innerHTML = renderLoginGate(); renderModalRoot(); return; }
   if (!fbReady && !fbFail) { v.innerHTML = renderSkeleton(); renderModalRoot(); return; }
+  if (page==="settings" && !isHighAccount()) page = "home";
 
   v.innerHTML = page==="settings" ? renderSettings() : renderHome();
   if (page==="home") bindCalendarSwipe();
@@ -386,7 +497,7 @@ function renderSkeleton(){
     </div>`;
 }
 
-/* ================= 首頁：今日代辦事項 ================= */
+/* ================= 首頁：我的待辦事項 ================= */
 function autoTodoItems(){
   const today = todayStr();
   const items = [];
@@ -407,43 +518,68 @@ function nextUpcomingCourse(){
   const upcoming = courses.filter(c=>c.startDate>today).sort((a,b)=> a.startDate<b.startDate?-1:1);
   return upcoming[0] || null;
 }
+function myTodos(){
+  if (!currentAccount) return [];
+  return todos.filter(t => t.assignedTo === currentAccount.id);
+}
+function dayMyTodos(dateStr){
+  if (!currentAccount) return [];
+  return todos.filter(t => t.assignedTo === currentAccount.id && t.date === dateStr);
+}
 
 function renderTodoCard(){
   const auto = autoTodoItems();
-  const manual = todos.filter(t=>!t.done || exitingTodoIds.has(t.id)).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const today = todayStr();
+  const manual = myTodos()
+    .filter(t => (!t.done && (t.date||today) <= today) || exitingTodoIds.has(t.id))
+    .sort((a,b)=> ((a.date||"")<(b.date||"")?-1:((a.date||"")>(b.date||"")?1:0)) || (a.createdAt||0)-(b.createdAt||0));
   const hasContent = auto.length || manual.length;
   const nxt = (!auto.length && !manual.length) ? nextUpcomingCourse() : null;
+  const high = isHighAccount();
   return `<div class="card${hasContent?' todo-active':''}">
-    <h3 class="sec"><span class="icon-badge">${ICONS.check}</span> 今日代辦事項</h3>
+    <h3 class="sec"><span class="icon-badge">${ICONS.check}</span> 我的待辦事項</h3>
     ${auto.length ? auto.map(t=>`<div class="todo-item auto">${t}</div>`).join("") : ""}
     ${manual.length ? manual.map(t=>{
         const exiting = exitingTodoIds.has(t.id);
         const deleting = deletingTodoIds.has(t.id);
         const cls = exiting ? "todo-exit" : (deleting ? "todo-delete-exit" : "");
+        const datePrefix = t.date && t.date !== today ? `<span class="muted" style="margin-right:5px">${t.date.slice(5)}</span>` : "";
         return `<div class="todo-item${cls?' '+cls:''}">
         <input type="checkbox" class="todo-checkbox" ${t.done||exiting?"checked":""} onchange="checkTodo('${t.id}')">
-        <span class="t">${esc(t.text)}</span>
-        <button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>
+        <span class="t">${datePrefix}${esc(t.text)}</span>
+        ${high ? `<button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>` : ""}
       </div>`;
       }).join("") : ""}
     ${(!auto.length && !manual.length) ? `<div class="empty">今天沒有代辦事項 🎉${nxt ? `<div class="muted" style="margin-top:6px">下一堂課：${nxt.startDate}．${esc(nxt.categoryName)}</div>` : ""}</div>` : ""}
-    <div class="todo-add">
-      <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="手動新增待辦（例如：訂餐盒）" onkeydown="if(event.key==='Enter')addTodo()">
-      <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="addTodo()">${busy.todoAdd?"處理中":"新增"}</button>
-    </div>
+    ${high ? `<div class="assign-form">
+      <div class="field-row">
+        <div class="field"><label>指派給</label>
+          <select id="assignPerson">${accountList().map(a=>`<option value="${a.id}" ${currentAccount && a.id===currentAccount.id?"selected":""}>${esc(a.name)}</option>`).join("")}</select>
+        </div>
+        <div class="field" style="max-width:150px"><label>日期</label><input type="date" id="assignDate" value="${today}"></div>
+      </div>
+      <div class="todo-add">
+        <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="輸入待辦內容（例如：訂餐盒）" onkeydown="if(event.key==='Enter')assignTodo()">
+        <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="assignTodo()">${busy.todoAdd?"處理中":"指派"}</button>
+      </div>
+    </div>` : ""}
   </div>`;
 }
 
-async function addTodo(){
+async function assignTodo(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
-  const el = document.getElementById("newTodoInput");
-  const text = el.value.trim();
+  const personEl = document.getElementById("assignPerson");
+  const dateEl = document.getElementById("assignDate");
+  const textEl = document.getElementById("newTodoInput");
+  const text = textEl.value.trim();
   if (!text) return;
+  const assignedTo = personEl.value;
+  const date = dateEl.value || todayStr();
   busy.todoAdd = true; render();
   const { db, collection, addDoc } = window.fb;
   try {
-    await addDoc(collection(db,"cp_todos"), { text, done:false, createdAt:Date.now() });
-  } catch(e){ alert("新增失敗："+e.message); }
+    await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, done:false, createdAt:Date.now() });
+  } catch(e){ alert("指派失敗："+e.message); }
   busy.todoAdd = false; render();
   const again = document.getElementById("newTodoInput");
   if (again) again.focus();
@@ -482,7 +618,7 @@ function dayCourses(dateStr){ return courses.filter(c => dateStr >= c.startDate 
 function renderCalendarCard(){
   const cells = buildMonthCells(viewYear, viewMonth);
   const today = todayStr();
-  return `<div class="card">
+  return `<div class="card" id="calRegion">
     <div class="cal-head">
       <button class="cal-nav" onclick="prevMonth()" aria-label="上個月">${ICONS.chevronLeft}</button>
       <b>${viewYear} 年 ${viewMonth+1} 月</b>
@@ -497,18 +633,41 @@ function renderCalendarCard(){
         const more = dcs.length - shown.length;
         const isToday = dateStr === today;
         const dnum = Number(dateStr.slice(8,10));
+        const myT = dayMyTodos(dateStr);
         return `<div class="cal-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
           <div class="cal-daynum">${dnum}</div>
           ${shown.map(c=>`<div class="cal-pill" style="background:${catColor(c.categoryId)}22;color:${catColor(c.categoryId)}">${esc(c.categoryName)}</div>`).join("")}
           ${more>0 ? `<div class="cal-more">+${more}</div>` : ""}
+          ${myT.length ? `<span class="cal-todo-dot" title="我的待辦"></span>` : ""}
         </div>`;
       }).join("")}
     </div>
     <div class="muted" style="text-align:center;margin-top:10px">點日期新增或查看課程．左右滑動切換月份</div>
   </div>`;
 }
-function prevMonth(){ viewMonth--; if (viewMonth<0){ viewMonth=11; viewYear--; } render(); }
-function nextMonth(){ viewMonth++; if (viewMonth>11){ viewMonth=0; viewYear++; } render(); }
+function prevMonth(){ slideMonth(-1); }
+function nextMonth(){ slideMonth(1); }
+function slideMonth(dir){
+  const cal = document.getElementById("calRegion");
+  if (!cal){
+    viewMonth += dir; if (viewMonth<0){viewMonth=11;viewYear--;} else if (viewMonth>11){viewMonth=0;viewYear++;}
+    render(); return;
+  }
+  cal.classList.remove("cal-enter-l","cal-enter-r");
+  void cal.offsetWidth;
+  cal.classList.add(dir<0 ? "cal-exit-r" : "cal-exit-l");
+  setTimeout(()=>{
+    viewMonth += dir;
+    if (viewMonth<0){ viewMonth=11; viewYear--; } else if (viewMonth>11){ viewMonth=0; viewYear++; }
+    render();
+    const cal2 = document.getElementById("calRegion");
+    if (cal2){
+      cal2.classList.remove(dir<0?"cal-exit-r":"cal-exit-l");
+      void cal2.offsetWidth;
+      cal2.classList.add(dir<0 ? "cal-enter-l" : "cal-enter-r");
+    }
+  }, 130);
+}
 function bindCalendarSwipe(){
   const el = document.getElementById("calGrid");
   if (!el) return;
@@ -529,7 +688,14 @@ function renderHome(){
 
 /* ================= 彈窗：當天課程 / 新增課程 ================= */
 function openDay(dateStr){ modal = { type:"day", date:dateStr }; renderModalRoot(); }
-function closeModal(){ modal = null; courseDraft = null; renderModalRoot(); }
+function closeModal(){
+  const ov = document.querySelector("#modalRoot .overlay");
+  if (!ov){ modal = null; courseDraft = null; renderModalRoot(); return; }
+  ov.classList.add("overlay-exit");
+  const sheet = ov.querySelector(".sheet");
+  if (sheet) sheet.classList.add("sheet-exit");
+  setTimeout(()=>{ modal = null; courseDraft = null; renderModalRoot(); }, 140);
+}
 function closeModalBg(e){ if (e.target === e.currentTarget) closeModal(); }
 
 function openAddCourse(dateStr){
@@ -586,6 +752,8 @@ function renderModalRoot(){
 }
 function renderDayModal(){
   const dcs = dayCourses(modal.date);
+  const myT = dayMyTodos(modal.date);
+  const high = isHighAccount();
   return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-head"><b class="date-pill">${dateLabel(modal.date)}</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
     ${dcs.length ? dcs.map(c=>`<div class="course-row${deletingCourseIds.has(c.id)?' course-exit':''}">
@@ -595,6 +763,15 @@ function renderDayModal(){
         <button class="btn btn-red btn-sm" onclick="deleteCourse('${c.id}')">刪除</button>
       </div>`).join("") : `<div class="empty">這天還沒有安排課程</div>`}
     <button class="btn btn-main" style="width:100%;margin-top:14px" onclick="openAddCourse('${modal.date}')">＋ 新增課程</button>
+    ${myT.length ? `<div class="muted" style="margin:16px 0 6px">我的待辦</div>${myT.map(t=>{
+        const exiting = exitingTodoIds.has(t.id); const deleting = deletingTodoIds.has(t.id);
+        const cls = exiting?'todo-exit':(deleting?'todo-delete-exit':'');
+        return `<div class="todo-item${cls?' '+cls:''}">
+          <input type="checkbox" class="todo-checkbox" ${t.done||exiting?'checked':''} onchange="checkTodo('${t.id}')">
+          <span class="t">${esc(t.text)}</span>
+          ${high ? `<button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>` : ""}
+        </div>`;
+      }).join("")}` : ""}
   </div></div>`;
 }
 function renderAddCourseModal(){
@@ -638,20 +815,46 @@ async function saveCategories(){
   } catch(e){ alert("儲存失敗："+e.message); }
   busy.catSave = false; render();
 }
-async function savePin(){
-  const v = (document.getElementById("setPin").value || "").trim() || DEFAULT_PIN;
-  busy.pinSave = true; render();
+
+/* ================= 後台：帳號管理 ================= */
+function addAcctRow(){ acctDraft.push({ id:"acc"+Date.now(), name:"", password:"", role:"low" }); render(); }
+function deleteAcctRow(idx){ acctDraft[idx]._removed = true; render(); }
+function restoreAcctRow(idx){ delete acctDraft[idx]._removed; render(); }
+function updateAcctDraft(idx, field, value){ acctDraft[idx][field] = value; }
+async function saveAccounts(){
+  const cleaned = acctDraft.filter(a=>!a._removed && a.name && a.name.trim() && a.password && a.password.trim())
+    .map(a=>({ id:a.id, name:a.name.trim(), password:a.password.trim(), role: a.role==="high"?"high":"low" }));
+  if (!cleaned.length) { alert("至少要保留一個帳號"); return; }
+  busy.acctSave = true; render();
   const { db, doc, setDoc } = window.fb;
   try {
-    await setDoc(doc(db,"cp_settings","app"), { ...settings, pin:v }, { merge:true });
-    showToast("密碼已儲存");
+    await setDoc(doc(db,"cp_settings","app"), { ...settings, accounts: cleaned }, { merge:true });
+    showToast("帳號已儲存");
   } catch(e){ alert("儲存失敗："+e.message); }
-  busy.pinSave = false; render();
+  busy.acctSave = false; render();
+}
+
+/* ================= 後台：指派總覽 ================= */
+function renderAssignOverviewRows(){
+  const rows = todos.slice().sort((a,b)=>{
+    const ad=a.date||"", bd=b.date||"";
+    return ad<bd?-1:(ad>bd?1:0);
+  });
+  if (!rows.length) return `<div class="empty">還沒有指派任何待辦</div>`;
+  return rows.map(t=>`<div class="todo-item" style="max-height:none">
+    <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.date||"")}・${esc(t.text)}</span>
+    <span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?"已完成":"未完成"}</span>
+  </div>`).join("");
 }
 
 function renderSettings(){
   if (!catDraft) catDraft = JSON.parse(JSON.stringify(settings.categories));
+  if (!acctDraft) acctDraft = JSON.parse(JSON.stringify(settings.accounts));
   return `${fbFail ? `<div class="err-banner">⚠️ 資料庫連線失敗，暫時無法儲存設定。<button class="btn btn-ghost btn-sm" onclick="location.reload()">重新整理</button></div>` : ""}
+    <div class="card">
+      <h3 class="sec"><span class="icon-badge">${ICONS.clipboard}</span> 指派總覽</h3>
+      ${renderAssignOverviewRows()}
+    </div>
     <div class="card">
       <h3 class="sec"><span class="icon-badge">${ICONS.tag}</span> 課程類別管理</h3>
       <div class="cat-head-row"><div>名稱</div><div>天數</div><div>提醒</div><div></div></div>
@@ -668,9 +871,22 @@ function renderSettings(){
       <div class="muted" style="margin-top:8px">「其他（手動輸入）」為系統固定選項，新增課程時可自行輸入名稱，不需在此設定。</div>
     </div>
     <div class="card">
-      <h3 class="sec"><span class="icon-badge">${ICONS.key}</span> 共用密碼</h3>
-      <div class="field"><input id="setPin" value="${esc(settings.pin||DEFAULT_PIN)}"></div>
-      <button class="btn btn-main btn-sm" ${busy.pinSave?"disabled":""} onclick="savePin()">${busy.pinSave?"儲存中…":"儲存密碼"}</button>
+      <h3 class="sec"><span class="icon-badge">${ICONS.people}</span> 帳號管理</h3>
+      <div class="acct-head-row"><div>姓名</div><div>密碼</div><div>權限</div><div></div></div>
+      ${acctDraft.map((a,idx)=> a._removed
+        ? `<div class="cat-row-removed"><span>已移除：${esc(a.name||"（未命名）")}</span><button class="btn btn-ghost btn-sm" onclick="restoreAcctRow(${idx})">復原</button></div>`
+        : `<div class="acct-row">
+        <input value="${esc(a.name)}" placeholder="姓名" oninput="updateAcctDraft(${idx},'name',this.value)">
+        <input value="${esc(a.password)}" placeholder="密碼" oninput="updateAcctDraft(${idx},'password',this.value)">
+        <select onchange="updateAcctDraft(${idx},'role',this.value)">
+          <option value="low" ${a.role!=="high"?"selected":""}>低權限</option>
+          <option value="high" ${a.role==="high"?"selected":""}>高權限</option>
+        </select>
+        <button class="del" aria-label="刪除帳號" onclick="deleteAcctRow(${idx})">${ICONS.x}</button>
+      </div>`).join("")}
+      <button class="btn btn-ghost btn-sm" onclick="addAcctRow()">＋ 新增帳號</button>
+      <div style="margin-top:12px"><button class="btn btn-main" style="width:100%" ${busy.acctSave?"disabled":""} onclick="saveAccounts()">${busy.acctSave?"儲存中…":"儲存帳號"}</button></div>
+      <div class="muted" style="margin-top:8px">高權限可以指派待辦給任何人、管理課程類別與帳號；低權限只能看自己被指派的待辦並勾選完成。</div>
     </div>`;
 }
 
