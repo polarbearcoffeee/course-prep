@@ -145,7 +145,8 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
 .cal-pill{ font-size:9.5px; border-radius:5px; padding:1px 3px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
 .cal-more{ font-size:9px; color:var(--muted); margin-top:1px; }
-.cal-todo-dot{ position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--brand); }
+.cal-todo-dot{ position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--brand); transition:background-color .2s ease; }
+.cal-todo-dot.done{ background:var(--ok); }
 
 /* 彈窗 */
 .overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
@@ -522,10 +523,7 @@ function myTodos(){
   if (!currentAccount) return [];
   return todos.filter(t => t.assignedTo === currentAccount.id);
 }
-function dayMyTodos(dateStr){
-  if (!currentAccount) return [];
-  return todos.filter(t => t.assignedTo === currentAccount.id && t.date === dateStr);
-}
+function dayTodos(dateStr){ return todos.filter(t => t.date === dateStr); }
 
 function renderTodoCard(){
   const auto = autoTodoItems();
@@ -633,12 +631,13 @@ function renderCalendarCard(){
         const more = dcs.length - shown.length;
         const isToday = dateStr === today;
         const dnum = Number(dateStr.slice(8,10));
-        const myT = dayMyTodos(dateStr);
+        const dayT = dayTodos(dateStr);
+        const hasPending = dayT.some(t=>!t.done);
         return `<div class="cal-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
           <div class="cal-daynum">${dnum}</div>
           ${shown.map(c=>`<div class="cal-pill" style="background:${catColor(c.categoryId)}22;color:${catColor(c.categoryId)}">${esc(c.categoryName)}</div>`).join("")}
           ${more>0 ? `<div class="cal-more">+${more}</div>` : ""}
-          ${myT.length ? `<span class="cal-todo-dot" title="我的待辦"></span>` : ""}
+          ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
         </div>`;
       }).join("")}
     </div>
@@ -752,7 +751,7 @@ function renderModalRoot(){
 }
 function renderDayModal(){
   const dcs = dayCourses(modal.date);
-  const myT = dayMyTodos(modal.date);
+  const dayT = dayTodos(modal.date);
   const high = isHighAccount();
   return `<div class="overlay" onclick="closeModalBg(event)"><div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-head"><b class="date-pill">${dateLabel(modal.date)}</b><button class="x" aria-label="關閉" onclick="closeModal()">${ICONS.x}</button></div>
@@ -763,12 +762,15 @@ function renderDayModal(){
         <button class="btn btn-red btn-sm" onclick="deleteCourse('${c.id}')">刪除</button>
       </div>`).join("") : `<div class="empty">這天還沒有安排課程</div>`}
     <button class="btn btn-main" style="width:100%;margin-top:14px" onclick="openAddCourse('${modal.date}')">＋ 新增課程</button>
-    ${myT.length ? `<div class="muted" style="margin:16px 0 6px">我的待辦</div>${myT.map(t=>{
+    ${dayT.length ? `<div class="muted" style="margin:16px 0 6px">當天的指派待辦</div>${dayT.map(t=>{
+        const mine = currentAccount && t.assignedTo === currentAccount.id;
         const exiting = exitingTodoIds.has(t.id); const deleting = deletingTodoIds.has(t.id);
         const cls = exiting?'todo-exit':(deleting?'todo-delete-exit':'');
         return `<div class="todo-item${cls?' '+cls:''}">
-          <input type="checkbox" class="todo-checkbox" ${t.done||exiting?'checked':''} onchange="checkTodo('${t.id}')">
-          <span class="t">${esc(t.text)}</span>
+          ${mine
+            ? `<input type="checkbox" class="todo-checkbox" ${t.done||exiting?'checked':''} onchange="checkTodo('${t.id}')">`
+            : `<span class="status-tag ${t.done?'status-done':'status-pending'}">${t.done?'已完成':'未完成'}</span>`}
+          <span class="t"><b>${esc(accountName(t.assignedTo))}</b>・${esc(t.text)}</span>
           ${high ? `<button class="del" aria-label="刪除待辦" onclick="deleteTodoBtn('${t.id}')">${ICONS.x}</button>` : ""}
         </div>`;
       }).join("")}` : ""}
