@@ -135,23 +135,23 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-nav:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
 .cal-body{ touch-action:pan-y; }
-.cal-week-row{ margin-bottom:5px; padding-bottom:5px; border-bottom:1px dotted var(--line); }
-.cal-week-row:last-child{ border-bottom:none; }
-.cal-daynum-row{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
-.cal-day-cell{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:26px; border-radius:8px; cursor:pointer; transition:background-color .15s ease, transform .1s ease; }
-.cal-day-cell:hover{ background:var(--hair); }
-.cal-day-cell:active{ transform:scale(.94); }
-.cal-day-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
-.cal-day-cell.blank{ visibility:hidden; cursor:default; }
+/* 每週一個 grid：day-box 是撐滿整週高度的方框（背景＋外框），課程色塊疊在同一個 grid 座標上，
+   跨天時色塊會蓋過方框之間的間距，視覺上連成一條，就是 Google 行事曆那種效果 */
+.cal-week-grid{ position:relative; display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:23px; grid-auto-rows:16px; margin-bottom:2px; }
+.cal-day-box{ position:relative; grid-row:1/-1; border:1px solid var(--line); border-radius:8px; margin:1px; padding:3px 4px; background:var(--card); cursor:pointer; transition:background-color .15s ease, border-color .15s ease, transform .1s ease; }
+.cal-day-box:hover{ background:var(--hair); border-color:var(--brand); }
+.cal-day-box:active{ transform:scale(.97); }
+.cal-day-box:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); z-index:3; }
+.cal-day-box.blank{ visibility:hidden; cursor:default; }
+.cal-day-box.today{ border:2px solid var(--navy); background:var(--navy-soft); margin:0; }
 .cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
-.cal-day-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:19px; height:19px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
-.cal-todo-dot{ width:5px; height:5px; border-radius:50%; background:var(--brand); margin-top:2px; transition:background-color .2s ease; }
+.cal-day-box.today .cal-daynum{ background:var(--navy); color:#fff; width:17px; height:17px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
+.cal-todo-dot{ position:absolute; top:5px; right:5px; width:5px; height:5px; border-radius:50%; background:var(--brand); transition:background-color .2s ease; }
 .cal-todo-dot.done{ background:var(--ok); }
-.cal-events-row{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px 4px; margin-top:3px; }
-.cal-event-bar{ font-size:10px; font-weight:700; color:#fff; padding:2px 6px; border-radius:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:filter .15s ease, transform .1s ease; line-height:1.5; }
-.cal-event-bar:hover{ filter:brightness(1.1); }
+.cal-event-bar{ position:relative; z-index:2; align-self:start; margin-top:1px; font-size:9.5px; font-weight:700; color:#fff; padding:2px 5px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:filter .15s ease, transform .1s ease; line-height:1.4; }
+.cal-event-bar:hover{ filter:brightness(1.12); }
 .cal-event-bar:active{ transform:scale(.97); }
-.cal-event-bar:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.cal-event-bar:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); z-index:3; }
 
 /* 彈窗 */
 .overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
@@ -193,13 +193,18 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .pick-cell.in-range{ background:var(--navy-soft); border-color:var(--navy-soft); }
 
 /* 後台類別／帳號管理 */
-.cat-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; align-items:center; margin-bottom:8px; }
-.cat-row input{ padding:8px 7px; border:1px solid var(--line); border-radius:8px; font-size:13px; width:100%; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
-.cat-row input:focus{ outline:none; border-color:var(--brand); }
-.cat-row .del{ background:none; border:none; color:var(--red); cursor:pointer; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:background-color .15s ease; }
-.cat-row .del:hover{ background:var(--red-bg); }
-.cat-row .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
-.cat-head-row{ display:grid; grid-template-columns:1fr 56px 56px 40px; gap:6px; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.cat-card{ border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; }
+.cat-card-top{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.cat-card-top input{ flex:1; min-width:0; padding:8px 9px; border:1px solid var(--line); border-radius:8px; font-size:14px; background:var(--card); color:var(--ink); transition:border-color .15s ease; }
+.cat-card-top input:focus{ outline:none; border-color:var(--brand); }
+.cat-card-top .del{ background:none; border:none; color:var(--red); cursor:pointer; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background-color .15s ease; }
+.cat-card-top .del:hover{ background:var(--red-bg); }
+.cat-card-top .del:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.cat-card-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.cat-field{ flex:1; min-width:52px; }
+.cat-field label{ display:block; font-size:10px; color:var(--muted); margin-bottom:3px; }
+.cat-field input{ width:100%; padding:7px 5px; border:1px solid var(--line); border-radius:7px; font-size:13px; background:var(--card); color:var(--ink); text-align:center; transition:border-color .15s ease; }
+.cat-field input:focus{ outline:none; border-color:var(--brand); }
 .cat-row-removed{ display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:var(--hair); border-radius:8px; margin-bottom:8px; font-size:13px; color:var(--muted); animation:catRemoved .18s ease both; }
 @keyframes catRemoved{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:translateY(0); } }
 .acct-row{ display:grid; grid-template-columns:1fr 1fr 88px 40px; gap:6px; align-items:center; margin-bottom:8px; }
@@ -308,12 +313,12 @@ const ICONS = {
 
 /* ================= 預設課程類別／帳號 ================= */
 const DEFAULT_CATEGORIES = [
-  { id:"jl", name:"形象精靈",         days:2, reminderLeadDays:7 },
-  { id:"gn", name:"高能量形象密碼講座", days:1, reminderLeadDays:3 },
-  { id:"xj", name:"形象小聚",         days:1, reminderLeadDays:3 },
-  { id:"cs", name:"色彩能量入門",      days:1, reminderLeadDays:3 }
+  { id:"jl", name:"形象精靈",         days:2, reminderLeadDays:[7,3,1] },
+  { id:"gn", name:"高能量形象密碼講座", days:1, reminderLeadDays:[3,1] },
+  { id:"xj", name:"形象小聚",         days:1, reminderLeadDays:[3,1] },
+  { id:"cs", name:"色彩能量入門",      days:1, reminderLeadDays:[3,1] }
 ];
-const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:3 };
+const OTHER_CAT = { id:"other", name:"其他（手動輸入）", days:1, reminderLeadDays:[3] };
 const DEFAULT_ACCOUNTS = [{ id:"admin", name:"管理者", password:"1234", role:"high" }];
 const CAT_COLORS = ["#22357a","#b8567a","#9c7a2a","#3a7a56","#35648f","#b8543c","#6f4a86","#2a7d75"];
 const WEEKDAYS = ["日","一","二","三","四","五","六"];
@@ -357,6 +362,13 @@ function diffDaysStr(a, b){ return Math.round((parseYMD(b) - parseYMD(a)) / 8640
 function dateLabel(s){ const d = parseYMD(s); return `${d.getMonth()+1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`; }
 function allCategories(){ return settings.categories.concat([OTHER_CAT]); }
 function catColor(catId){ const list = allCategories(); const idx = list.findIndex(c=>c.id===catId); return CAT_COLORS[idx>=0 ? idx % CAT_COLORS.length : 0]; }
+// 提醒天數統一整理成陣列：舊資料是單一數字也能正常讀取，不用特別轉換
+function remindersOf(c){
+  const r = c && c.reminderLeadDays;
+  if (Array.isArray(r)) return r.filter(n=>n!=null && n!=="").map(n=>Math.max(0,Math.floor(Number(n)||0)));
+  if (r!=null && r!=="") return [Math.max(0,Math.floor(Number(r)||0))];
+  return [];
+}
 function accountList(){ return (settings.accounts && settings.accounts.length) ? settings.accounts : DEFAULT_ACCOUNTS; }
 function accountName(id){ const a = accountList().find(x=>x.id===id); return a ? a.name : "（未知帳號）"; }
 function isHighAccount(){ return !!(currentAccount && currentAccount.role === "high"); }
@@ -531,7 +543,7 @@ function autoTodoItems(){
       items.push(`<span class="icon-badge icon-badge-sm">${ICONS.calendar}</span><span class="t">今天有課：${esc(c.categoryName)}${c.startDate!==c.endDate ? "（多日課程）" : ""}</span>`);
     } else {
       const until = diffDaysStr(today, c.startDate);
-      if (until > 0 && until === Number(c.reminderLeadDays)) {
+      if (until > 0 && remindersOf(c).includes(until)) {
         items.push(`<span class="icon-badge icon-badge-sm">${ICONS.clock}</span><span class="t">${until} 天後開課提醒：${esc(c.categoryName)}（該打電話確認／發通知了）</span>`);
       }
     }
@@ -581,6 +593,9 @@ function renderTodoCard(){
     ${high ? (()=>{
         if (!assignDraft.date) assignDraft.date = today;
         if (!assignDraft.endDate) assignDraft.endDate = assignDraft.date;
+        const cats = allCategories();
+        if (!assignDraft.categoryId) assignDraft.categoryId = cats[0] ? cats[0].id : null;
+        const isOther = assignDraft.categoryId === "other";
         return `<div class="assign-form">
       <div class="field"><label>指派給</label>
         <select id="assignPerson">${accountList().map(a=>`<option value="${a.id}" ${currentAccount && a.id===currentAccount.id?"selected":""}>${esc(a.name)}</option>`).join("")}</select>
@@ -594,8 +609,13 @@ function renderTodoCard(){
         </div>
       </div>
       <div class="field" style="max-width:160px"><label>時間（選填）</label><input type="time" value="${esc(assignDraft.time)}" oninput="assignDraft.time=this.value"></div>
-      <div class="todo-add">
-        <input id="newTodoInput" ${busy.todoAdd?"disabled":""} placeholder="輸入待辦內容（例如：訂餐盒）" onkeydown="if(event.key==='Enter')assignTodo()">
+      <div class="field"><label>待辦內容</label>
+        <select id="assignCatSelect" onchange="onAssignCategoryChange(this.value)">
+          ${cats.map(c=>`<option value="${c.id}" ${assignDraft.categoryId===c.id?"selected":""}>${esc(c.name)}</option>`).join("")}
+        </select>
+      </div>
+      ${isOther ? `<div class="field"><input id="newTodoInput" ${busy.todoAdd?"disabled":""} value="${esc(assignDraft.customText||"")}" placeholder="請輸入待辦內容" oninput="assignDraft.customText=this.value" onkeydown="if(event.key==='Enter')assignTodo()"></div>` : ""}
+      <div class="todo-add" style="justify-content:flex-end">
         <button class="btn btn-main btn-sm" ${busy.todoAdd?"disabled":""} onclick="assignTodo()">${busy.todoAdd?"處理中":"指派"}</button>
       </div>
     </div>`;
@@ -603,12 +623,14 @@ function renderTodoCard(){
   </div>`;
 }
 
+function onAssignCategoryChange(id){ assignDraft.categoryId = id; render(); }
 async function assignTodo(){
   if (!fbReady) { alert("資料庫尚未連線，請稍後再試"); return; }
   const personEl = document.getElementById("assignPerson");
-  const textEl = document.getElementById("newTodoInput");
-  const text = textEl.value.trim();
-  if (!text) return;
+  const cat = allCategories().find(c=>c.id===assignDraft.categoryId);
+  const isOther = assignDraft.categoryId === "other";
+  const text = isOther ? (assignDraft.customText||"").trim() : (cat ? cat.name : "");
+  if (!text) { alert(isOther ? "請輸入待辦內容" : "請先在課程類別管理新增至少一個類別"); return; }
   const assignedTo = personEl.value;
   const date = assignDraft.date || todayStr();
   const endDate = (assignDraft.endDate && assignDraft.endDate >= date) ? assignDraft.endDate : date;
@@ -617,10 +639,9 @@ async function assignTodo(){
   const { db, collection, addDoc } = window.fb;
   try {
     await addDoc(collection(db,"cp_todos"), { text, assignedTo, assignedBy: currentAccount.id, date, endDate, time, done:false, createdAt:Date.now() });
+    if (isOther) assignDraft.customText = "";
   } catch(e){ alert("指派失敗："+e.message); }
   busy.todoAdd = false; render();
-  const again = document.getElementById("newTodoInput");
-  if (again) again.focus();
 }
 function checkTodo(id){
   if (exitingTodoIds.has(id)) return;
@@ -696,25 +717,20 @@ function renderCalendarCard(){
     <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
     <div class="cal-body" id="calGrid">
       ${weeks.map(week=>{
-        const { placed, laneCount } = weekEventLanes(week);
-        return `<div class="cal-week-row">
-          <div class="cal-daynum-row">
-            ${week.map(dateStr=>{
-              if (!dateStr) return `<div class="cal-day-cell blank"></div>`;
-              const isToday = dateStr === today;
-              const dnum = Number(dateStr.slice(8,10));
-              const dayT = dayTodos(dateStr);
-              const hasPending = dayT.some(t=>!t.done);
-              return `<div class="cal-day-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
-                <span class="cal-daynum">${dnum}</span>
-                ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
-              </div>`;
-            }).join("")}
-          </div>
-          ${laneCount ? `<div class="cal-events-row" style="grid-auto-rows:16px">
-            ${placed.map(p=>`<div class="cal-event-bar" style="grid-column:${p.startCol+1} / ${p.endCol+2}; grid-row:${p.lane+1}; background:${catColor(p.course.categoryId)}" tabindex="0" role="button" onclick="openDay('${p.course.startDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${p.course.startDate}')}" title="${esc(p.course.categoryName)}">${esc(p.course.categoryName)}</div>`).join("")}
-          </div>` : ""}
-        </div>`;
+        const { placed } = weekEventLanes(week);
+        const dayBoxes = week.map((dateStr,i)=>{
+          if (!dateStr) return `<div class="cal-day-box blank" style="grid-column:${i+1}"></div>`;
+          const isToday = dateStr === today;
+          const dnum = Number(dateStr.slice(8,10));
+          const dayT = dayTodos(dateStr);
+          const hasPending = dayT.some(t=>!t.done);
+          return `<div class="cal-day-box${isToday?' today':''}" style="grid-column:${i+1}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
+            <span class="cal-daynum">${dnum}</span>
+            ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
+          </div>`;
+        }).join("");
+        const eventBars = placed.map(p=>`<div class="cal-event-bar" style="grid-column:${p.startCol+1} / ${p.endCol+2}; grid-row:${p.lane+2}; background:${catColor(p.course.categoryId)}" tabindex="0" role="button" onclick="openDay('${p.course.startDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${p.course.startDate}')}" title="${esc(p.course.categoryName)}">${esc(p.course.categoryName)}</div>`).join("");
+        return `<div class="cal-week-grid">${dayBoxes}${eventBars}</div>`;
       }).join("")}
     </div>
     <div class="muted" style="text-align:center;margin-top:10px">點日期新增或查看課程．左右滑動切換月份</div>
@@ -775,14 +791,14 @@ function closeModalBg(e){ if (e.target === e.currentTarget) closeModal(); }
 
 function openAddCourse(dateStr){
   const first = allCategories()[0];
-  courseDraft = { date: dateStr, categoryId: first.id, customName:"", endDate: addDaysStr(dateStr, first.days-1), reminderLeadDays: first.reminderLeadDays };
+  courseDraft = { date: dateStr, categoryId: first.id, customName:"", endDate: addDaysStr(dateStr, first.days-1), reminderLeadDays: remindersOf(first) };
   modal = { type:"addCourse" };
   renderModalRoot();
 }
 function pickDraftCategory(id){
   const cat = allCategories().find(c=>c.id===id);
   courseDraft.categoryId = id;
-  if (id !== "other") { courseDraft.endDate = addDaysStr(courseDraft.date, cat.days-1); courseDraft.reminderLeadDays = cat.reminderLeadDays; }
+  if (id !== "other") { courseDraft.endDate = addDaysStr(courseDraft.date, cat.days-1); courseDraft.reminderLeadDays = remindersOf(cat); }
   renderModalRoot();
 }
 function draftStartChange(v){
@@ -802,7 +818,7 @@ async function saveCourse(){
   const startDate = courseDraft.date;
   const endDate = courseDraft.endDate < startDate ? startDate : courseDraft.endDate;
   const days = diffDaysStr(startDate, endDate) + 1;
-  const reminderLeadDays = Math.max(0, Math.floor(Number(courseDraft.reminderLeadDays)||0));
+  const reminderLeadDays = remindersOf({reminderLeadDays: courseDraft.reminderLeadDays});
   busy.courseSave = true; renderModalRoot();
   const { db, collection, addDoc } = window.fb;
   try {
@@ -891,7 +907,7 @@ function renderDayModal(){
     ${dcs.length ? dcs.map(c=>`<div class="course-row${deletingCourseIds.has(c.id)?' course-exit':''}">
         <span class="dot" style="background:${catColor(c.categoryId)}"></span>
         <div class="ci"><div class="cn">${esc(c.categoryName)}</div>
-        <div class="cm">${c.startDate===c.endDate ? "當天課程" : c.startDate+" ～ "+c.endDate}・提前 ${c.reminderLeadDays} 天提醒</div></div>
+        <div class="cm">${c.startDate===c.endDate ? "當天課程" : c.startDate+" ～ "+c.endDate}${remindersOf(c).length ? `・提前 ${remindersOf(c).join('、')} 天提醒` : ""}</div></div>
         <button class="btn btn-red btn-sm" onclick="deleteCourse('${c.id}')">刪除</button>
       </div>`).join("") : `<div class="empty">這天還沒有安排課程</div>`}
     <button class="btn btn-main" style="width:100%;margin-top:14px" onclick="openAddCourse('${modal.date}')">＋ 新增課程</button>
@@ -923,21 +939,28 @@ function renderAddCourseModal(){
       <div class="field"><label>結束日期</label><input type="date" value="${courseDraft.endDate}" min="${courseDraft.date}" onchange="draftEndChange(this.value)"></div>
     </div>
     <div class="muted" style="margin:-6px 0 12px">共 <b>${diffDaysStr(courseDraft.date, courseDraft.endDate)+1}</b> 天</div>
-    <div class="field"><label>提前幾天提醒開課</label><input type="number" min="0" value="${courseDraft.reminderLeadDays}" oninput="courseDraft.reminderLeadDays=Math.max(0,Math.floor(Number(this.value)||0))"></div>
+    <div class="field"><label>提前幾天提醒開課（可填多個，用逗號分開，例如 7,3,1）</label><input value="${esc((courseDraft.reminderLeadDays||[]).join(','))}" oninput="courseDraft.reminderLeadDays=this.value.split(',').map(s=>s.trim()).filter(s=>s!=='').map(n=>Math.max(0,Math.floor(Number(n)||0)))" placeholder="例如 7,3,1"></div>
     <button class="btn btn-main" style="width:100%" ${busy.courseSave?"disabled":""} onclick="saveCourse()">${busy.courseSave?"儲存中…":"儲存課程"}</button>
   </div></div>`;
 }
 
 /* ================= 後台：課程類別管理 ================= */
-function addCatRow(){ catDraft.push({ id:"c"+Date.now(), name:"", days:1, reminderLeadDays:3 }); render(); }
+function addCatRow(){ catDraft.push({ id:"c"+Date.now(), name:"", days:1, reminderLeadDays:[3] }); render(); }
 function deleteCatRow(idx){ catDraft[idx]._removed = true; render(); }
 function restoreCatRow(idx){ delete catDraft[idx]._removed; render(); }
 function updateCatDraft(idx, field, value){
   if (field==="name") catDraft[idx].name = value;
-  else catDraft[idx][field] = Math.max(field==="reminderLeadDays"?0:1, Math.floor(Number(value)||(field==="reminderLeadDays"?0:1)));
+  else catDraft[idx][field] = Math.max(1, Math.floor(Number(value)||1));
+}
+function updateCatReminder(idx, slot, value){
+  const arr = remindersOf(catDraft[idx]).slice();
+  while (arr.length <= slot) arr.push(null);
+  const v = String(value).trim();
+  arr[slot] = v === "" ? null : Math.max(0, Math.floor(Number(v)||0));
+  catDraft[idx].reminderLeadDays = arr;
 }
 async function saveCategories(){
-  const cleaned = catDraft.filter(c=>!c._removed && c.name && c.name.trim()).map(c=>({ id:c.id, name:c.name.trim(), days:c.days, reminderLeadDays:c.reminderLeadDays }));
+  const cleaned = catDraft.filter(c=>!c._removed && c.name && c.name.trim()).map(c=>({ id:c.id, name:c.name.trim(), days:c.days, reminderLeadDays:remindersOf(c) }));
   if (!cleaned.length) { alert("至少要保留一個課程類別"); return; }
   busy.catSave = true; render();
   const { db, doc, setDoc } = window.fb;
@@ -989,18 +1012,26 @@ function renderSettings(){
     </div>
     <div class="card">
       <h3 class="sec"><span class="icon-badge">${ICONS.tag}</span> 課程類別管理</h3>
-      <div class="cat-head-row"><div>名稱</div><div>天數</div><div>提醒</div><div></div></div>
-      ${catDraft.map((c,idx)=> c._removed
-        ? `<div class="cat-row-removed"><span>已移除：${esc(c.name||"（未命名）")}</span><button class="btn btn-ghost btn-sm" onclick="restoreCatRow(${idx})">復原</button></div>`
-        : `<div class="cat-row">
-        <input value="${esc(c.name)}" placeholder="類別名稱" oninput="updateCatDraft(${idx},'name',this.value)">
-        <input type="number" min="1" value="${c.days}" oninput="updateCatDraft(${idx},'days',this.value)">
-        <input type="number" min="0" value="${c.reminderLeadDays}" oninput="updateCatDraft(${idx},'reminderLeadDays',this.value)">
-        <button class="del" aria-label="刪除類別" onclick="deleteCatRow(${idx})">${ICONS.x}</button>
-      </div>`).join("")}
+      ${catDraft.map((c,idx)=> {
+        if (c._removed) return `<div class="cat-row-removed"><span>已移除：${esc(c.name||"（未命名）")}</span><button class="btn btn-ghost btn-sm" onclick="restoreCatRow(${idx})">復原</button></div>`;
+        const rem = remindersOf(c);
+        return `<div class="cat-card">
+        <div class="cat-card-top">
+          <input value="${esc(c.name)}" placeholder="類別名稱" oninput="updateCatDraft(${idx},'name',this.value)">
+          <button class="del" aria-label="刪除類別" onclick="deleteCatRow(${idx})">${ICONS.x}</button>
+        </div>
+        <div class="cat-card-row">
+          <div class="cat-field"><label>天數</label><input type="number" min="1" value="${c.days}" oninput="updateCatDraft(${idx},'days',this.value)"></div>
+          <div class="cat-field"><label>提醒1</label><input type="number" min="0" placeholder="—" value="${rem[0]??''}" oninput="updateCatReminder(${idx},0,this.value)"></div>
+          <div class="cat-field"><label>提醒2</label><input type="number" min="0" placeholder="—" value="${rem[1]??''}" oninput="updateCatReminder(${idx},1,this.value)"></div>
+          <div class="cat-field"><label>提醒3</label><input type="number" min="0" placeholder="—" value="${rem[2]??''}" oninput="updateCatReminder(${idx},2,this.value)"></div>
+          <div class="cat-field"><label>提醒4</label><input type="number" min="0" placeholder="—" value="${rem[3]??''}" oninput="updateCatReminder(${idx},3,this.value)"></div>
+        </div>
+      </div>`;
+      }).join("")}
       <button class="btn btn-ghost btn-sm" onclick="addCatRow()">＋ 新增類別</button>
       <div style="margin-top:12px"><button class="btn btn-main" style="width:100%" ${busy.catSave?"disabled":""} onclick="saveCategories()">${busy.catSave?"儲存中…":"儲存課程類別"}</button></div>
-      <div class="muted" style="margin-top:8px">「其他（手動輸入）」為系統固定選項，新增課程時可自行輸入名稱，不需在此設定。</div>
+      <div class="muted" style="margin-top:8px">提醒欄位可以填多個（例如提前 7 天、3 天、1 天都各提醒一次），沒有要用的留空即可。「其他（手動輸入）」為系統固定選項，新增課程時可自行輸入名稱，不需在此設定。</div>
     </div>
     <div class="card">
       <h3 class="sec"><span class="icon-badge">${ICONS.people}</span> 帳號管理</h3>
