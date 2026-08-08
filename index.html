@@ -138,7 +138,7 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 /* 每週一個 grid：day-box 是撐滿整週高度的方框（背景＋外框），課程色塊疊在同一個 grid 座標上，
    跨天時色塊會蓋過方框之間的間距，視覺上連成一條，就是 Google 行事曆那種效果 */
 .cal-week-grid{ position:relative; display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:23px; grid-auto-rows:16px; margin-bottom:2px; }
-.cal-day-box{ position:relative; grid-row:1/-1; border:1px solid var(--line); border-radius:8px; margin:1px; padding:3px 4px; background:var(--card); cursor:pointer; transition:background-color .15s ease, border-color .15s ease, transform .1s ease; }
+.cal-day-box{ position:relative; border:1px solid var(--line); border-radius:8px; margin:1px; padding:3px 4px; background:var(--card); cursor:pointer; transition:background-color .15s ease, border-color .15s ease, transform .1s ease; }
 .cal-day-box:hover{ background:var(--hair); border-color:var(--brand); }
 .cal-day-box:active{ transform:scale(.97); }
 .cal-day-box:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); z-index:3; }
@@ -717,14 +717,18 @@ function renderCalendarCard(){
     <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
     <div class="cal-body" id="calGrid">
       ${weeks.map(week=>{
-        const { placed } = weekEventLanes(week);
+        const { placed, laneCount } = weekEventLanes(week);
+        // 方框要橫跨「日期列＋所有課程色塊列」，不能用 -1（那只算「明訂的」格線，
+        // 色塊自動撐出來的格不算在內，方框就會只框住日期數字、色塊卻長在框外，
+        // 造成大小不一致、歪掉）——這裡直接算出實際的最後一列格線編號
+        const lastRowLine = laneCount + 2; // 第1列＝日期數字，第2列起每列一個課程色塊
         const dayBoxes = week.map((dateStr,i)=>{
           if (!dateStr) return `<div class="cal-day-box blank" style="grid-column:${i+1}"></div>`;
           const isToday = dateStr === today;
           const dnum = Number(dateStr.slice(8,10));
           const dayT = dayTodos(dateStr);
           const hasPending = dayT.some(t=>!t.done);
-          return `<div class="cal-day-box${isToday?' today':''}" style="grid-column:${i+1}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
+          return `<div class="cal-day-box${isToday?' today':''}" style="grid-column:${i+1}; grid-row:1 / ${lastRowLine}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
             <span class="cal-daynum">${dnum}</span>
             ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
           </div>`;
