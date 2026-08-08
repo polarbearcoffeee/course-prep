@@ -135,23 +135,26 @@ input[type=checkbox].todo-checkbox:focus-visible{ outline:none; box-shadow:0 0 0
 .cal-nav:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 .cal-week{ display:grid; grid-template-columns:repeat(7,1fr); text-align:center; font-size:11px; color:var(--muted); margin-bottom:4px; }
 .cal-body{ touch-action:pan-y; }
-/* 每週一個 grid：day-box 是撐滿整週高度的方框（背景＋外框），課程色塊疊在同一個 grid 座標上，
-   跨天時色塊會蓋過方框之間的間距，視覺上連成一條，就是 Google 行事曆那種效果 */
-.cal-week-grid{ position:relative; display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:23px; grid-auto-rows:16px; margin-bottom:2px; }
-.cal-day-box{ position:relative; border:1px solid var(--line); border-radius:8px; margin:1px; padding:3px 4px; background:var(--card); cursor:pointer; transition:background-color .15s ease, border-color .15s ease, transform .1s ease; }
-.cal-day-box:hover{ background:var(--hair); border-color:var(--brand); }
-.cal-day-box:active{ transform:scale(.97); }
-.cal-day-box:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); z-index:3; }
-.cal-day-box.blank{ visibility:hidden; cursor:default; }
-.cal-day-box.today{ border:2px solid var(--navy); background:var(--navy-soft); margin:0; }
+/* 不用「方框跨列」的做法（曾經因為格線計算方式在不同瀏覽器上跑出不一致的高度）。
+   改成最單純穩定的排法：日期數字一排，課程色塊另外一排，兩排各自是獨立的 7 欄 grid，
+   欄位對齊靠的是同一組 grid-template-columns，不會有跨列撐高的問題。 */
+.cal-week-row{ margin-bottom:6px; padding-bottom:6px; border-bottom:1px dotted var(--line); }
+.cal-week-row:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.cal-daynum-row{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-day-cell{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:28px; border-radius:8px; cursor:pointer; transition:background-color .15s ease, transform .1s ease; }
+.cal-day-cell:hover{ background:var(--hair); }
+.cal-day-cell:active{ transform:scale(.94); }
+.cal-day-cell:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
+.cal-day-cell.blank{ visibility:hidden; cursor:default; }
 .cal-daynum{ font-size:11px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
-.cal-day-box.today .cal-daynum{ background:var(--navy); color:#fff; width:17px; height:17px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
-.cal-todo-dot{ position:absolute; top:5px; right:5px; width:5px; height:5px; border-radius:50%; background:var(--brand); transition:background-color .2s ease; }
+.cal-day-cell.today .cal-daynum{ background:var(--navy); color:#fff; width:19px; height:19px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
+.cal-todo-dot{ width:5px; height:5px; border-radius:50%; background:var(--brand); margin-top:2px; transition:background-color .2s ease; }
 .cal-todo-dot.done{ background:var(--ok); }
-.cal-event-bar{ position:relative; z-index:2; align-self:start; margin-top:1px; font-size:9.5px; font-weight:700; color:#fff; padding:2px 5px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:filter .15s ease, transform .1s ease; line-height:1.4; }
+.cal-events-row{ display:grid; grid-template-columns:repeat(7,1fr); grid-auto-rows:16px; gap:3px 4px; margin-top:4px; }
+.cal-event-bar{ align-self:start; font-size:9.5px; font-weight:700; color:#fff; padding:2px 5px; border-radius:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; transition:filter .15s ease, transform .1s ease; line-height:1.4; }
 .cal-event-bar:hover{ filter:brightness(1.12); }
 .cal-event-bar:active{ transform:scale(.97); }
-.cal-event-bar:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); z-index:3; }
+.cal-event-bar:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 
 /* 彈窗 */
 .overlay{ position:fixed; inset:0; background:rgba(20,16,28,.5); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:overlayIn .18s ease-out both; }
@@ -717,24 +720,20 @@ function renderCalendarCard(){
     <div class="cal-week">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
     <div class="cal-body" id="calGrid">
       ${weeks.map(week=>{
-        const { placed, laneCount } = weekEventLanes(week);
-        // 方框要橫跨「日期列＋所有課程色塊列」，不能用 -1（那只算「明訂的」格線，
-        // 色塊自動撐出來的格不算在內，方框就會只框住日期數字、色塊卻長在框外，
-        // 造成大小不一致、歪掉）——這裡直接算出實際的最後一列格線編號
-        const lastRowLine = laneCount + 2; // 第1列＝日期數字，第2列起每列一個課程色塊
-        const dayBoxes = week.map((dateStr,i)=>{
-          if (!dateStr) return `<div class="cal-day-box blank" style="grid-column:${i+1}"></div>`;
+        const { placed } = weekEventLanes(week);
+        const dayCells = week.map((dateStr,i)=>{
+          if (!dateStr) return `<div class="cal-day-cell blank"></div>`;
           const isToday = dateStr === today;
           const dnum = Number(dateStr.slice(8,10));
           const dayT = dayTodos(dateStr);
           const hasPending = dayT.some(t=>!t.done);
-          return `<div class="cal-day-box${isToday?' today':''}" style="grid-column:${i+1}; grid-row:1 / ${lastRowLine}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
+          return `<div class="cal-day-cell${isToday?' today':''}" tabindex="0" role="button" aria-label="${dateStr}" onclick="openDay('${dateStr}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${dateStr}')}">
             <span class="cal-daynum">${dnum}</span>
             ${dayT.length ? `<span class="cal-todo-dot${hasPending?'':' done'}" title="${hasPending?'還有未完成的指派待辦':'指派待辦已全部完成'}"></span>` : ""}
           </div>`;
         }).join("");
-        const eventBars = placed.map(p=>`<div class="cal-event-bar" style="grid-column:${p.startCol+1} / ${p.endCol+2}; grid-row:${p.lane+2}; background:${catColor(p.course.categoryId)}" tabindex="0" role="button" onclick="openDay('${p.course.startDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${p.course.startDate}')}" title="${esc(p.course.categoryName)}">${esc(p.course.categoryName)}</div>`).join("");
-        return `<div class="cal-week-grid">${dayBoxes}${eventBars}</div>`;
+        const eventBars = placed.length ? `<div class="cal-events-row">${placed.map(p=>`<div class="cal-event-bar" style="grid-column:${p.startCol+1} / ${p.endCol+2}; grid-row:${p.lane+1}; background:${catColor(p.course.categoryId)}" tabindex="0" role="button" onclick="openDay('${p.course.startDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDay('${p.course.startDate}')}" title="${esc(p.course.categoryName)}">${esc(p.course.categoryName)}</div>`).join("")}</div>` : "";
+        return `<div class="cal-week-row"><div class="cal-daynum-row">${dayCells}</div>${eventBars}</div>`;
       }).join("")}
     </div>
     <div class="muted" style="text-align:center;margin-top:10px">點日期新增或查看課程．左右滑動切換月份</div>
